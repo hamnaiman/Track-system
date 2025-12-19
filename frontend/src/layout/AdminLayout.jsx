@@ -4,12 +4,16 @@ import Sidebar from "../components/Sidebar";
 
 const AdminLayout = () => {
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen overflow-hidden">
+
+      {/* ===== ADMIN SIDEBAR ===== */}
       <Sidebar role="admin" />
 
-      <main className="flex-1 bg-white p-6 overflow-hidden">
+      {/* ===== MAIN CONTENT ===== */}
+      <main className="flex-1 bg-gray-50 p-6 overflow-y-auto">
         <Outlet />
       </main>
+
     </div>
   );
 };

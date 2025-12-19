@@ -1,13 +1,11 @@
-// src/routes/AdminRoutes.jsx
-import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 
 const AdminRoutes = () => {
-  const role = localStorage.getItem("role"); // ya AuthContext use kar sakte hain
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
 
-  if (role !== "admin") {
-    return <Navigate to="/login" replace />;
-  }
+  if (!token) return <Navigate to="/login" replace />;
+  if (role !== "admin") return <Navigate to="/login" replace />;
 
   return <Outlet />;
 };
