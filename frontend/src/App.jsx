@@ -30,6 +30,7 @@ import CountrySetup from "./pages/Admin/setups/CountrySetup";
 import CustomerRegistration from "./pages/Admin/setups/CustomerRegistration";
 import FileStatusSetup from "./pages/Admin/setups/FileStatusSetup";
 import TMFormsSetup from "./pages/Admin/setups/TMFormsSetup";
+import CustomerListTM from "./pages/Admin/setups/CustomerListTM";
 
 /* Admin → Trademark */
 import ApplicationDetails from "./pages/Admin/trademark/ApplicationDetails";
@@ -41,6 +42,11 @@ import BasicSearchReport from "./pages/Admin/trademark/BasicSearchReport";
 import TMSingleQuery from "./pages/Admin/trademark/TMSingleQuery";
 import TMReminderReport from "./pages/Admin/trademark/TMReminderReport";
 import TMRenewalReport from "./pages/Admin/trademark/TMRenewalReport";
+import TMDocuments from "./pages/Admin/trademark/TMDocuments";
+
+/* ✅ Admin → Opposition */
+import OppositionDocuments from "./pages/Admin/opposition/OppositionDocuments";
+import OppositionFormEntries from "./pages/Admin/opposition/OppositionFormEntries";
 
 /* Admin → Journal */
 import CompareJournal from "./pages/Admin/TradeMarkJournal/CompareJournal";
@@ -77,6 +83,7 @@ function App() {
         {/* ADMIN */}
         <Route path="/admin" element={<AdminRoutes />}>
           <Route element={<AdminLayout />}>
+
             <Route path="dashboard" element={<AdminDashboard />} />
 
             {/* SETUPS */}
@@ -90,6 +97,7 @@ function App() {
             <Route path="setups/customer-registration" element={<CustomerRegistration />} />
             <Route path="setups/file-status" element={<FileStatusSetup />} />
             <Route path="setups/tm-forms" element={<TMFormsSetup />} />
+            <Route path="setups/customer-list-tm" element={<CustomerListTM />} />
 
             {/* TRADEMARK */}
             <Route path="trademark/applications" element={<ApplicationDetails />} />
@@ -97,6 +105,11 @@ function App() {
             <Route path="trademark/journal-details" element={<JournalDetails />} />
             <Route path="trademark/renewal-details" element={<RenewalDetails />} />
             <Route path="trademark/tm-form-entries" element={<TMFormEntries />} />
+            <Route path="trademark/documents" element={<TMDocuments />} />
+
+            {/* ✅ OPPOSITION */}
+            <Route path="opposition/documents" element={<OppositionDocuments />} />
+            <Route path="opposition/form-entries" element={<OppositionFormEntries />} />
 
             {/* REPORTS */}
             <Route path="reports/basic-search" element={<BasicSearchReport />} />
@@ -113,6 +126,7 @@ function App() {
             <Route path="change-password" element={<ChangePassword />} />
             <Route path="date-setup" element={<DateSetup />} />
             <Route path="logo-setup" element={<LogoSetup />} />
+
           </Route>
         </Route>
 

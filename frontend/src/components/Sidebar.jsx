@@ -50,6 +50,14 @@ const Sidebar = ({ role }) => {
               <NavLink to="/admin/setups/agent-registration" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Agent Registration</NavLink>
               <NavLink to="/admin/setups/agent-list-tm" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Agent List TM</NavLink>
               <NavLink to="/admin/setups/customer-registration" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Customer Registration</NavLink>
+              <NavLink
+                to="/admin/setups/customer-list-tm"
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? linkActive : linkInactive}`
+                }
+              >
+                Customer List TM
+              </NavLink>
             </nav>
 
             {/* TRADEMARK */}
@@ -62,6 +70,31 @@ const Sidebar = ({ role }) => {
               <NavLink to="/admin/trademark/journal-details" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Journal Details</NavLink>
               <NavLink to="/admin/trademark/renewal-details" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Renewal Details</NavLink>
               <NavLink to="/admin/trademark/tm-form-entries" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>TM Form Entries</NavLink>
+              <NavLink to="/admin/trademark/documents" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>TM Documents</NavLink>
+            </nav>
+
+            {/* ✅ OPPOSITION */}
+            <div className="mt-5 px-4 text-xs font-semibold text-gray-500 uppercase">
+              Opposition
+            </div>
+            <nav className="mt-1 space-y-1 px-2">
+              <NavLink
+                to="/admin/opposition/documents"
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? linkActive : linkInactive}`
+                }
+              >
+                Opposition Documents
+              </NavLink>
+
+              <NavLink
+                to="/admin/opposition/form-entries"
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? linkActive : linkInactive}`
+                }
+              >
+                Opposition Form Entries
+              </NavLink>
             </nav>
 
             {/* REPORTS */}
