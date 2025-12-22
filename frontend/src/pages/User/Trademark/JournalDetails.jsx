@@ -6,37 +6,40 @@ const JournalDetails = () => {
   const [selectedApp, setSelectedApp] = useState("");
   const [journal, setJournal] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   /* ================= FETCH USER APPLICATIONS ================= */
   useEffect(() => {
-    fetchApplications();
+    loadApplications();
   }, []);
 
-  const fetchApplications = async () => {
+  const loadApplications = async () => {
     try {
-      // ✅ CORRECT ENDPOINT
-      const res = await api.get("/applications/my-applications");
+      const res = await api.get("/applications");
 
-      // ✅ CORRECT DATA ACCESS
-      setApplications(res.data.data || []);
+      const apps = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data || [];
+
+      setApplications(apps);
     } catch (err) {
-      console.error("Failed to load applications", err);
+      setError("Failed to load applications");
     }
   };
 
   /* ================= FETCH JOURNAL ================= */
-  const fetchJournal = async (appId) => {
+  const loadJournal = async (appId) => {
     if (!appId) return;
 
     setLoading(true);
     setJournal(null);
+    setError("");
 
     try {
       const res = await api.get(`/journals/${appId}`);
       setJournal(res.data.data);
     } catch (err) {
-      console.error("Journal not found", err);
-      setJournal(null);
+      setError("No journal record found for this application");
     } finally {
       setLoading(false);
     }
@@ -51,13 +54,13 @@ const JournalDetails = () => {
           Journal Details
         </h2>
         <p className="text-sm text-gray-500">
-          View journal publication details of your applications
+          View journal publication record of your trademark applications
         </p>
       </div>
 
       {/* Application Selector */}
       <div className="bg-white border rounded p-4 mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium mb-2">
           Select Application
         </label>
 
@@ -65,8 +68,9 @@ const JournalDetails = () => {
           className="w-full border rounded px-3 py-2"
           value={selectedApp}
           onChange={(e) => {
-            setSelectedApp(e.target.value);
-            fetchJournal(e.target.value);
+            const value = e.target.value;
+            setSelectedApp(value);
+            loadJournal(value);
           }}
         >
           <option value="">-- Select Application --</option>
@@ -81,8 +85,13 @@ const JournalDetails = () => {
 
       {/* Loading */}
       {loading && (
-        <div className="text-gray-500">
-          Loading journal details...
+        <div className="text-gray-500">Loading journal record...</div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="text-red-500 bg-red-50 border border-red-200 p-3 rounded">
+          {error}
         </div>
       )}
 
@@ -94,11 +103,11 @@ const JournalDetails = () => {
           <div className="border-b px-4 py-3 bg-gray-50">
             <p className="text-sm">
               <strong>Application No:</strong>{" "}
-              {journal.application.applicationNumber}
+              {journal.application?.applicationNumber}
             </p>
             <p className="text-sm">
               <strong>Trademark:</strong>{" "}
-              {journal.application.trademark}
+              {journal.application?.trademark}
             </p>
           </div>
 
@@ -119,7 +128,7 @@ const JournalDetails = () => {
                 {journal.entries.length === 0 && (
                   <tr>
                     <td colSpan="5" className="text-center py-6 text-gray-500">
-                      No journal entries found
+                      No journal entries available
                     </td>
                   </tr>
                 )}

@@ -6,33 +6,45 @@ const Hearings = () => {
   const [selectedApp, setSelectedApp] = useState("");
   const [hearingData, setHearingData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Load user applications
+  /* ================= LOAD USER APPLICATIONS ================= */
   useEffect(() => {
     loadApplications();
   }, []);
 
   const loadApplications = async () => {
     try {
-      const res = await api.get("/applications/my-applications");
-      setApplications(res.data || []);
+      // ✅ USER ENDPOINT
+      const res = await api.get("/applications");
+
+      // ✅ SAFE NORMALIZATION
+      const apps = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data || [];
+
+      setApplications(apps);
     } catch (err) {
       console.error("Failed to load applications", err);
+      setApplications([]);
+      setError("Failed to load applications");
     }
   };
 
-  // Load hearings for selected application
+  /* ================= LOAD HEARINGS ================= */
   const loadHearings = async (appId) => {
     if (!appId) return;
 
     setLoading(true);
     setHearingData(null);
+    setError("");
 
     try {
       const res = await api.get(`/hearings/${appId}`);
-      setHearingData(res.data);
+      setHearingData(res.data?.data || null);
     } catch (err) {
       console.error("No hearing found");
+      setError("No hearing record found for this application");
       setHearingData(null);
     } finally {
       setLoading(false);
@@ -42,13 +54,11 @@ const Hearings = () => {
   return (
     <div className="h-full flex flex-col">
 
-      {/* PAGE HEADER */}
+      {/* HEADER */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
-          Hearings
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-800">Hearings</h2>
         <p className="text-sm text-gray-500">
-          View date wise hearing records of your trademark applications
+          View date-wise hearing records of your trademark applications
         </p>
       </div>
 
@@ -62,12 +72,18 @@ const Hearings = () => {
           className="w-full border rounded px-3 py-2"
           value={selectedApp}
           onChange={(e) => {
-            setSelectedApp(e.target.value);
-            loadHearings(e.target.value);
+            const value = e.target.value;
+            setSelectedApp(value);
+            loadHearings(value);
           }}
         >
           <option value="">-- Select Application --</option>
-          {applications.map(app => (
+
+          {applications.length === 0 && (
+            <option disabled>No applications found</option>
+          )}
+
+          {applications.map((app) => (
             <option key={app._id} value={app._id}>
               {app.applicationNumber} - {app.trademark}
             </option>
@@ -80,6 +96,13 @@ const Hearings = () => {
         <div className="text-gray-500">Loading hearings...</div>
       )}
 
+      {/* ERROR */}
+      {error && (
+        <div className="text-red-500 bg-red-50 border border-red-200 p-3 rounded">
+          {error}
+        </div>
+      )}
+
       {/* HEARING DATA */}
       {!loading && hearingData && (
         <div className="bg-white border rounded shadow-sm">
@@ -88,28 +111,27 @@ const Hearings = () => {
           <div className="border-b px-4 py-3 bg-gray-50">
             <p className="text-sm">
               <strong>Application No:</strong>{" "}
-              {hearingData.application.applicationNumber}
+              {hearingData.application?.applicationNumber}
             </p>
             <p className="text-sm">
               <strong>Trademark:</strong>{" "}
-              {hearingData.application.trademark}
+              {hearingData.application?.trademark}
             </p>
           </div>
 
-          {/* HEARINGS TABLE */}
+          {/* TABLE */}
           <div className="overflow-auto">
             <table className="w-full text-sm border-collapse">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="border px-3 py-2 text-left">Hearing Date</th>
-                  <th className="border px-3 py-2 text-left">Before</th>
-                  <th className="border px-3 py-2 text-left">Comments / Arguments</th>
-                  <th className="border px-3 py-2 text-left">Advocate Appeared</th>
+                  <th className="border px-3 py-2">Hearing Date</th>
+                  <th className="border px-3 py-2">Before</th>
+                  <th className="border px-3 py-2">Comments / Arguments</th>
+                  <th className="border px-3 py-2">Advocate Appeared</th>
                 </tr>
               </thead>
               <tbody>
-
-                {hearingData.hearings.length === 0 && (
+                {hearingData.hearings?.length === 0 && (
                   <tr>
                     <td colSpan="4" className="text-center py-6 text-gray-500">
                       No hearing records found
@@ -117,8 +139,8 @@ const Hearings = () => {
                   </tr>
                 )}
 
-                {hearingData.hearings.map(row => (
-                  <tr key={row._id} className="hover:bg-gray-50">
+                {hearingData.hearings?.map((row) => (
+                  <tr key={row._id}>
                     <td className="border px-3 py-2">
                       {new Date(row.hearingDate).toLocaleDateString()}
                     </td>
@@ -131,7 +153,6 @@ const Hearings = () => {
                     </td>
                   </tr>
                 ))}
-
               </tbody>
             </table>
           </div>

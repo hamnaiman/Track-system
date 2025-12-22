@@ -2,22 +2,22 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 
 const linkBase =
-  "block px-4 py-2 rounded text-sm transition-colors";
+  "relative block px-4 py-2 rounded text-sm transition-all";
 const linkInactive =
-  "text-gray-700 hover:bg-gray-100";
+  "text-gray-700 hover:bg-blue-50 hover:text-[#3E4A8A]";
 const linkActive =
-  "bg-gray-700 text-white";
+  "bg-blue-50 text-[#3E4A8A] font-semibold before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-[#3E4A8A]";
 
 const Sidebar = ({ role }) => {
   return (
     <aside className="w-64 bg-white border-r h-full flex flex-col">
 
-      {/* HEADER */}
-      <div className="h-14 flex items-center px-4 font-semibold text-gray-800 border-b bg-gray-50">
-        {role === "admin" ? "Admin Panel" : "User Panel"}
+      {/* ===== HEADER ===== */}
+      <div className="h-14 flex items-center px-4 font-semibold text-[#3E4A8A] border-b bg-white">
+        {role === "admin" ? "IPMS – Admin Panel" : "IPMS – User Panel"}
       </div>
 
-      {/* SCROLL AREA */}
+      {/* ===== SCROLL AREA ===== */}
       <div className="flex-1 overflow-y-auto py-2">
 
         {/* ================= ADMIN ================= */}
@@ -36,126 +36,98 @@ const Sidebar = ({ role }) => {
             </nav>
 
             {/* SETUPS */}
-            <div className="mt-5 px-4 text-xs font-semibold text-gray-500 uppercase">
-              Setups
-            </div>
-            <nav className="mt-1 space-y-1 px-2">
-              <NavLink to="/admin/setups/add-user" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Add User</NavLink>
-              <NavLink to="/admin/setups/country" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Country</NavLink>
-              <NavLink to="/admin/setups/city" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>City</NavLink>
-              <NavLink to="/admin/setups/class" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Class</NavLink>
-              <NavLink to="/admin/setups/business-type" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Business Type</NavLink>
-              <NavLink to="/admin/setups/file-status" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>File Status</NavLink>
-              <NavLink to="/admin/setups/tm-forms" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>TM Forms</NavLink>
-              <NavLink to="/admin/setups/agent-registration" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Agent Registration</NavLink>
-              <NavLink to="/admin/setups/agent-list-tm" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Agent List TM</NavLink>
-              <NavLink to="/admin/setups/customer-registration" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Customer Registration</NavLink>
-              <NavLink
-                to="/admin/setups/customer-list-tm"
-                className={({ isActive }) =>
-                  `${linkBase} ${isActive ? linkActive : linkInactive}`
-                }
-              >
-                Customer List TM
-              </NavLink>
-            </nav>
+            <Section title="Setups">
+              <Item to="/admin/setups/add-user">Add User</Item>
+              <Item to="/admin/setups/country">Country</Item>
+              <Item to="/admin/setups/city">City</Item>
+              <Item to="/admin/setups/class">Class</Item>
+              <Item to="/admin/setups/business-type">Business Type</Item>
+              <Item to="/admin/setups/file-status">File Status</Item>
+              <Item to="/admin/setups/tm-forms">TM Forms</Item>
+              <Item to="/admin/setups/agent-registration">Agent Registration</Item>
+              <Item to="/admin/setups/agent-list-tm">Agent List TM</Item>
+              <Item to="/admin/setups/customer-registration">Customer Registration</Item>
+              <Item to="/admin/setups/customer-list-tm">Customer List TM</Item>
+            </Section>
 
             {/* TRADEMARK */}
-            <div className="mt-5 px-4 text-xs font-semibold text-gray-500 uppercase">
-              Trademark
-            </div>
-            <nav className="mt-1 space-y-1 px-2">
-              <NavLink to="/admin/trademark/applications" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Application Details</NavLink>
-              <NavLink to="/admin/trademark/hearings" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Hearings</NavLink>
-              <NavLink to="/admin/trademark/journal-details" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Journal Details</NavLink>
-              <NavLink to="/admin/trademark/renewal-details" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Renewal Details</NavLink>
-              <NavLink to="/admin/trademark/tm-form-entries" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>TM Form Entries</NavLink>
-              <NavLink to="/admin/trademark/documents" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>TM Documents</NavLink>
-            </nav>
+            <Section title="Trademark">
+              <Item to="/admin/trademark/applications">Application Details</Item>
+              <Item to="/admin/trademark/hearings">Hearings</Item>
+              <Item to="/admin/trademark/journal-details">Journal Details</Item>
+              <Item to="/admin/trademark/renewal-details">Renewal Details</Item>
+              <Item to="/admin/trademark/tm-form-entries">TM Form Entries</Item>
+              <Item to="/admin/trademark/documents">TM Documents</Item>
+            </Section>
 
-            {/* ✅ OPPOSITION */}
-            <div className="mt-5 px-4 text-xs font-semibold text-gray-500 uppercase">
-              Opposition
-            </div>
-            <nav className="mt-1 space-y-1 px-2">
-              <NavLink
-                to="/admin/opposition/documents"
-                className={({ isActive }) =>
-                  `${linkBase} ${isActive ? linkActive : linkInactive}`
-                }
-              >
-                Opposition Documents
-              </NavLink>
-
-              <NavLink
-                to="/admin/opposition/form-entries"
-                className={({ isActive }) =>
-                  `${linkBase} ${isActive ? linkActive : linkInactive}`
-                }
-              >
-                Opposition Form Entries
-              </NavLink>
-            </nav>
+            {/* OPPOSITION */}
+            <Section title="Opposition">
+              <Item to="/admin/opposition/documents">Opposition Documents</Item>
+              <Item to="/admin/opposition/form-entries">Opposition Form Entries</Item>
+              <Item to="/admin/opposition/report">Opposition Report</Item>
+              <Item to="/admin/opposition/reminder-report">Opposition Reminder Report</Item>
+              <Item to="/admin/opposition/single-query">Opposition Single Query</Item>
+            </Section>
 
             {/* REPORTS */}
-            <div className="mt-5 px-4 text-xs font-semibold text-gray-500 uppercase">
-              Reports
-            </div>
-            <nav className="mt-1 space-y-1 px-2">
-              <NavLink to="/admin/reports/basic-search" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Basic Search</NavLink>
-              <NavLink to="/admin/reports/reminder" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Reminder Report</NavLink>
-              <NavLink to="/admin/reports/renewal" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Renewal Report</NavLink>
-              <NavLink to="/admin/reports/single-query" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Single Query</NavLink>
-            </nav>
-
-            {/* JOURNAL */}
-            <div className="mt-5 px-4 text-xs font-semibold text-gray-500 uppercase">
-              TradeMark Journal
-            </div>
-            <nav className="mt-1 space-y-1 px-2">
-              <NavLink to="/admin/journal/compare" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Compare Journal</NavLink>
-              <NavLink to="/admin/journal/monthly" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Monthly Journal</NavLink>
-              <NavLink to="/admin/journal/search-manual" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Search Manual</NavLink>
-            </nav>
+            <Section title="Reports">
+              <Item to="/admin/reports/basic-search">Basic Search</Item>
+              <Item to="/admin/reports/reminder">Reminder Report</Item>
+              <Item to="/admin/reports/renewal">Renewal Report</Item>
+              <Item to="/admin/reports/single-query">Single Query</Item>
+            </Section>
 
             {/* UTILITY */}
-            <div className="mt-5 px-4 text-xs font-semibold text-gray-500 uppercase">
-              Utility
-            </div>
-            <nav className="mt-1 space-y-1 px-2">
-              <NavLink to="/admin/change-password" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Change Password</NavLink>
-              <NavLink to="/admin/date-setup" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Date Setup</NavLink>
-              <NavLink to="/admin/logo-setup" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Logo Setup</NavLink>
-            </nav>
+            <Section title="Utility">
+              <Item to="/admin/change-password">Change Password</Item>
+              <Item to="/admin/date-setup">Date Setup</Item>
+              <Item to="/admin/logo-setup">Logo Setup</Item>
+            </Section>
           </>
         )}
 
         {/* ================= USER ================= */}
         {role === "user" && (
           <>
-            <div className="mt-3 px-4 text-xs font-semibold text-gray-500 uppercase">
-              Trademark
-            </div>
-            <nav className="mt-1 space-y-1 px-2">
-              <NavLink to="/user/dashboard" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Dashboard</NavLink>
-              <NavLink to="/user/trademark/applications" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>My Applications</NavLink>
-              <NavLink to="/user/trademark/journal-details" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Journal Details</NavLink>
-              <NavLink to="/user/trademark/hearings" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Hearings</NavLink>
-              <NavLink to="/user/trademark/renewal-details" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Renewals</NavLink>
-            </nav>
+            <Section title="Trademark">
+              <Item to="/user/dashboard">Dashboard</Item>
+              <Item to="/user/trademark/applications">My Applications</Item>
+              <Item to="/user/trademark/journal-details">Journal Details</Item>
+              <Item to="/user/trademark/hearings">Hearings</Item>
+              <Item to="/user/trademark/renewal-details">Renewals</Item>
+              <Item to="/user/trademark/tm-forms">TM Forms</Item>
+            </Section>
 
-            <div className="mt-5 px-4 text-xs font-semibold text-gray-500 uppercase">
-              Utility
-            </div>
-            <nav className="mt-1 space-y-1 px-2">
-              <NavLink to="/user/change-password" className={({isActive})=>`${linkBase} ${isActive?linkActive:linkInactive}`}>Change Password</NavLink>
-            </nav>
+            <Section title="Utility">
+              <Item to="/user/change-password">Change Password</Item>
+            </Section>
           </>
         )}
-
       </div>
     </aside>
   );
 };
+
+/* ===== REUSABLE COMPONENTS ===== */
+
+const Section = ({ title, children }) => (
+  <>
+    <div className="mt-5 px-4 text-xs font-semibold text-gray-500 uppercase">
+      {title}
+    </div>
+    <nav className="mt-1 space-y-1 px-2">{children}</nav>
+  </>
+);
+
+const Item = ({ to, children }) => (
+  <NavLink
+    to={to}
+    className={({ isActive }) =>
+      `${linkBase} ${isActive ? linkActive : linkInactive}`
+    }
+  >
+    {children}
+  </NavLink>
+);
 
 export default Sidebar;

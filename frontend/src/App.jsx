@@ -1,25 +1,25 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-/* Guards */
+/* ================= GUARDS ================= */
 import AdminRoutes from "./routes/AdminRoutes";
 import UserRoutes from "./routes/UserRoutes";
 import AgentRoutes from "./routes/AgentRoutes";
 
-/* Auth */
+/* ================= AUTH ================= */
 import Login from "./pages/Auth/Login";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
 
-/* Layouts */
+/* ================= LAYOUTS ================= */
 import AdminLayout from "./layout/AdminLayout";
 import UserLayout from "./layout/UserLayout";
 import AgentLayout from "./layout/AgentLayout";
 
-/* Admin */
+/* ================= ADMIN ================= */
 import AdminDashboard from "./pages/Admin/Dashboard";
 
-/* Admin → Setups */
+/* ===== ADMIN → SETUPS ===== */
 import AddUser from "./pages/Admin/setups/AddUser";
 import AgentListTM from "./pages/Admin/setups/AgentListTM";
 import AgentRegistration from "./pages/Admin/setups/AgentRegistration";
@@ -32,41 +32,61 @@ import FileStatusSetup from "./pages/Admin/setups/FileStatusSetup";
 import TMFormsSetup from "./pages/Admin/setups/TMFormsSetup";
 import CustomerListTM from "./pages/Admin/setups/CustomerListTM";
 
-/* Admin → Trademark */
+/* ===== ADMIN → TRADEMARK ===== */
 import ApplicationDetails from "./pages/Admin/trademark/ApplicationDetails";
 import Hearing from "./pages/Admin/trademark/Hearing";
 import JournalDetails from "./pages/Admin/trademark/JournalDetails";
 import RenewalDetails from "./pages/Admin/trademark/RenewalDetails";
 import TMFormEntries from "./pages/Admin/trademark/TMFormEntries";
+import TMDocuments from "./pages/Admin/trademark/TMDocuments";
+
+/* ===== ADMIN → REPORTS ===== */
 import BasicSearchReport from "./pages/Admin/trademark/BasicSearchReport";
 import TMSingleQuery from "./pages/Admin/trademark/TMSingleQuery";
 import TMReminderReport from "./pages/Admin/trademark/TMReminderReport";
 import TMRenewalReport from "./pages/Admin/trademark/TMRenewalReport";
-import TMDocuments from "./pages/Admin/trademark/TMDocuments";
 
-/* ✅ Admin → Opposition */
+/* ===== ADMIN → OPPOSITION ===== */
 import OppositionDocuments from "./pages/Admin/opposition/OppositionDocuments";
 import OppositionFormEntries from "./pages/Admin/opposition/OppositionFormEntries";
+import OppositionReport from "./pages/Admin/opposition/OppositionReport";
+import OppositionReminderReport from "./pages/Admin/opposition/OppositionReminderReport";
+import OppositionSingleQuery from "./pages/Admin/opposition/OppositionSingleQuery";
 
-/* Admin → Journal */
+/* ===== ADMIN → JOURNAL ===== */
 import CompareJournal from "./pages/Admin/TradeMarkJournal/CompareJournal";
 import MonthlyJournal from "./pages/Admin/TradeMarkJournal/MonthlyJournal";
 import SearchManualJournal from "./pages/Admin/TradeMarkJournal/SearchManualJournal";
 
-/* Admin → Utility */
+/* ===== ADMIN → UTILITY ===== */
 import ChangePassword from "./pages/Admin/Utility/ChangePassword";
 import DateSetup from "./pages/Admin/Utility/DateSetup";
 import LogoSetup from "./pages/Admin/Utility/LogoSetup";
 
-/* User */
+/* ================= USER ================= */
 import UserDashboard from "./pages/User/Dashboard";
 import UserChangePassword from "./pages/User/Utility/ChangePassword";
-import UserApplicationDetails from "./pages/User/trademark/ApplicationDetails";
-import UserHearings from "./pages/User/trademark/Hearings";
-import UserJournalDetails from "./pages/User/trademark/JournalDetails";
-import UserRenewalDetails from "./pages/User/trademark/RenewalDetails";
 
-/* Agent */
+/* USER → TRADEMARK */
+import UserApplicationDetails from "./pages/User/Trademark/ApplicationDetails";
+import UserHearings from "./pages/User/Trademark/Hearings";
+import UserJournalDetails from "./pages/User/Trademark/JournalDetails";
+import UserRenewalDetails from "./pages/User/Trademark/RenewalDetails";
+import TMForms from "./pages/User/Trademark/TMForms";
+import UserTMDocuments from "./pages/User/Trademark/TMDocuments";
+
+/* USER → JOURNAL */
+import MonthlyEntries from "./pages/User/Journal/MonthlyEntries";
+import UserCompareJournal from "./pages/User/Journal/CompareJournal";
+import ManualSearch from "./pages/User/Journal/ManualSearch";
+
+/* USER → REPORTS */
+import UserBasicSearch from "./pages/User/Reports/BasicSearch";
+import UserReminderReport from "./pages/User/Reports/ReminderReport";
+import UserRenewalReport from "./pages/User/Reports/RenewalReport";
+import UserSingleQuery from "./pages/User/Reports/SingleQuery";
+
+/* ================= AGENT ================= */
 import AgentDashboard from "./pages/Agent/Dashboard";
 
 function App() {
@@ -83,7 +103,6 @@ function App() {
         {/* ADMIN */}
         <Route path="/admin" element={<AdminRoutes />}>
           <Route element={<AdminLayout />}>
-
             <Route path="dashboard" element={<AdminDashboard />} />
 
             {/* SETUPS */}
@@ -107,15 +126,18 @@ function App() {
             <Route path="trademark/tm-form-entries" element={<TMFormEntries />} />
             <Route path="trademark/documents" element={<TMDocuments />} />
 
-            {/* ✅ OPPOSITION */}
-            <Route path="opposition/documents" element={<OppositionDocuments />} />
-            <Route path="opposition/form-entries" element={<OppositionFormEntries />} />
-
             {/* REPORTS */}
             <Route path="reports/basic-search" element={<BasicSearchReport />} />
-            <Route path="reports/single-query" element={<TMSingleQuery />} />
             <Route path="reports/reminder" element={<TMReminderReport />} />
             <Route path="reports/renewal" element={<TMRenewalReport />} />
+            <Route path="reports/single-query" element={<TMSingleQuery />} />
+
+            {/* OPPOSITION */}
+            <Route path="opposition/documents" element={<OppositionDocuments />} />
+            <Route path="opposition/form-entries" element={<OppositionFormEntries />} />
+            <Route path="opposition/report" element={<OppositionReport />} />
+            <Route path="opposition/reminder-report" element={<OppositionReminderReport />} />
+            <Route path="opposition/single-query" element={<OppositionSingleQuery />} />
 
             {/* JOURNAL */}
             <Route path="journal/compare" element={<CompareJournal />} />
@@ -126,7 +148,6 @@ function App() {
             <Route path="change-password" element={<ChangePassword />} />
             <Route path="date-setup" element={<DateSetup />} />
             <Route path="logo-setup" element={<LogoSetup />} />
-
           </Route>
         </Route>
 
@@ -134,10 +155,27 @@ function App() {
         <Route path="/user" element={<UserRoutes />}>
           <Route element={<UserLayout />}>
             <Route path="dashboard" element={<UserDashboard />} />
+
+            {/* TRADEMARK */}
             <Route path="trademark/applications" element={<UserApplicationDetails />} />
             <Route path="trademark/hearings" element={<UserHearings />} />
             <Route path="trademark/journal-details" element={<UserJournalDetails />} />
             <Route path="trademark/renewal-details" element={<UserRenewalDetails />} />
+            <Route path="trademark/tm-forms" element={<TMForms />} />
+            <Route path="trademark/documents" element={<UserTMDocuments />} />
+
+            {/* JOURNAL */}
+            <Route path="journal/monthly-entries" element={<MonthlyEntries />} />
+            <Route path="journal/compare" element={<UserCompareJournal />} />
+            <Route path="journal/search-manual" element={<ManualSearch />} />
+
+            {/* REPORTS */}
+            <Route path="reports/basic-search" element={<UserBasicSearch />} />
+            <Route path="reports/reminder" element={<UserReminderReport />} />
+            <Route path="reports/renewal" element={<UserRenewalReport />} />
+            <Route path="reports/single-query" element={<UserSingleQuery />} />
+
+            {/* UTILITY */}
             <Route path="change-password" element={<UserChangePassword />} />
           </Route>
         </Route>

@@ -1,68 +1,165 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../../api/api";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer
+} from "recharts";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const userName = localStorage.getItem("userName") || "User";
 
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  /* ================= FETCH USER APPLICATIONS ================= */
+  useEffect(() => {
+    fetchApplications();
+  }, []);
+
+  const fetchApplications = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/applications");
+      setApplications(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Failed to load applications", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= DASHBOARD STATS ================= */
+  const totalApps = applications.length;
+  const publishedApps = applications.filter(
+    (a) => a.status === "Published"
+  ).length;
+  const pendingApps = totalApps - publishedApps;
+
+  /* ================= GRAPH DATA ================= */
+  const graphData = applications.reduce((acc, app) => {
+    if (!app.createdAt) return acc;
+    const date = new Date(app.createdAt).toLocaleDateString();
+    const found = acc.find((i) => i.date === date);
+    if (found) found.count += 1;
+    else acc.push({ date, count: 1 });
+    return acc;
+  }, []);
+
   return (
-    <div className="h-full">
-      {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold text-gray-800">
+    <div className="space-y-8">
+
+      {/* ===== HEADER ===== */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#3E4A8A]">
           Welcome, {userName}
-        </h2>
+        </h1>
         <p className="text-gray-500 mt-1">
-          Click any module to manage your trademark records
+          Overview of your intellectual property portfolio
         </p>
       </div>
 
-      {/* Cards Section */}
+      {/* ===== STATS CARDS ===== */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        {/* Application Details */}
         <div
           onClick={() => navigate("/user/trademark/applications")}
-          className="bg-white border rounded-xl p-6 cursor-pointer
-                     hover:shadow-md transition"
+          className="bg-white rounded-xl p-6 border hover:shadow-lg cursor-pointer transition"
         >
-          <h3 className="text-lg font-semibold text-gray-800">
-            Application Details
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">
-            View & track your trademark applications
-          </p>
+          <p className="text-sm text-gray-500">Total Applications</p>
+          <h2 className="text-3xl font-bold text-[#3E4A8A] mt-2">
+            {totalApps}
+          </h2>
         </div>
 
-        {/* Journal */}
-        <div
-          onClick={() => navigate("/user/journal/monthly")}
-          className="bg-white border rounded-xl p-6 cursor-pointer
-                     hover:shadow-md transition"
-        >
-          <h3 className="text-lg font-semibold text-gray-800">
-            Trademark Journal
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">
-            Monthly journal & comparison tools
-          </p>
+        <div className="bg-white rounded-xl p-6 border hover:shadow-lg transition">
+          <p className="text-sm text-gray-500">Published</p>
+          <h2 className="text-3xl font-bold text-[#6FAE7B] mt-2">
+            {publishedApps}
+          </h2>
         </div>
 
-        {/* Reports */}
-        <div
-          onClick={() => navigate("/user/reports/basic-search")}
-          className="bg-white border rounded-xl p-6 cursor-pointer
-                     hover:shadow-md transition"
-        >
-          <h3 className="text-lg font-semibold text-gray-800">
-            Reports
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">
-            Search, renewal & reminder reports
-          </p>
+        <div className="bg-white rounded-xl p-6 border hover:shadow-lg transition">
+          <p className="text-sm text-gray-500">Pending / In Process</p>
+          <h2 className="text-3xl font-bold text-gray-700 mt-2">
+            {pendingApps}
+          </h2>
         </div>
 
       </div>
+
+      {/* ===== GRAPH + ACTIONS ===== */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* ===== GRAPH ===== */}
+        <div className="lg:col-span-2 bg-white rounded-xl p-6 border">
+          <h3 className="text-lg font-semibold text-[#3E4A8A] mb-4">
+            Applications Over Time
+          </h3>
+
+          {loading ? (
+            <p className="text-gray-500">Loading data...</p>
+          ) : graphData.length === 0 ? (
+            <div className="h-64 flex items-center justify-center text-gray-500 text-sm border rounded-lg">
+              No application data available yet
+            </div>
+          ) : (
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={graphData}>
+                  <XAxis dataKey="date" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#3E4A8A"
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+
+        {/* ===== QUICK ACTIONS ===== */}
+        <div className="bg-white rounded-xl p-6 border space-y-4">
+          <h3 className="text-lg font-semibold text-[#3E4A8A]">
+            Quick Actions
+          </h3>
+
+          {[
+            { label: "View Monthly Journal", path: "/user/journal/monthly-entries" },
+            { label: "Compare with Journal", path: "/user/journal/compare" },
+            { label: "Manual Journal Search", path: "/user/journal/search-manual" },
+            { label: "Reports & Analytics", path: "/user/reports/basic-search" }
+          ].map((item) => (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className="w-full text-left px-4 py-3 border rounded-lg hover:bg-[#F4F6F8] transition"
+            >
+              {item.label}
+            </button>
+          ))}
+
+          <a
+            href="/user-manual.pdf"
+            download
+            className="block text-center px-4 py-3 rounded-lg bg-[#3E4A8A] text-white hover:bg-[#2f3970] transition"
+          >
+            Download User Manual
+          </a>
+        </div>
+
+      </div>
+
     </div>
   );
 };
