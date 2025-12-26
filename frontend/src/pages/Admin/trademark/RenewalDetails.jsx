@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import api from "../../../api/api";
-
 import { toast } from "react-toastify";
 
 const RenewalDetails = () => {
@@ -13,7 +12,7 @@ const RenewalDetails = () => {
 
   const [renewal, setRenewal] = useState({ entries: [] });
 
-  // ✅ SEARCH APPLICATION BY NUMBER
+  /* ================= SEARCH APPLICATION ================= */
   const searchApplication = async () => {
     if (!applicationNumber.trim()) {
       toast.warning("Enter Application Number");
@@ -31,19 +30,17 @@ const RenewalDetails = () => {
       }
 
       const app = res.data.data[0];
-
       setAppData(app);
-      setApplicationId(app._id); // ✅ CORRECT ID
-      loadRenewals(app._id);     // ✅ LOAD RENEWALS
+      setApplicationId(app._id);
+      loadRenewals(app._id);
 
       toast.success("Application Loaded");
-
-    } catch (err) {
+    } catch {
       toast.error("Search Failed");
     }
   };
 
-  // ✅ LOAD RENEWALS USING REAL OBJECT ID
+  /* ================= LOAD RENEWALS ================= */
   const loadRenewals = async (appId) => {
     try {
       const res = await api.get(`/renewals/${appId}`);
@@ -53,12 +50,12 @@ const RenewalDetails = () => {
     }
   };
 
-  // ✅ ADD RENEWAL ENTRY
+  /* ================= ADD ENTRY ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!applicationId || !renewedUpto) {
-      toast.warning("Application & Renew Date required");
+      toast.warning("Renewal date is required");
       return;
     }
 
@@ -69,30 +66,32 @@ const RenewalDetails = () => {
         remark,
       });
 
-      toast.success("✅ Renewal Entry Added");
+      toast.success("Renewal Entry Added");
 
       setRenewedUpto("");
       setRemark("");
-
       loadRenewals(applicationId);
-
     } catch (err) {
       toast.error(err.response?.data?.message || "Save Failed");
     }
   };
 
-  // ✅ DELETE ENTRY
+  /* ================= DELETE ENTRY ================= */
   const deleteEntry = (renewalId, entryId) => {
     toast.info(
       ({ closeToast }) => (
-        <div className="flex flex-col gap-3">
-          <p className="font-semibold text-sm">Delete this Renewal Entry?</p>
+        <div className="space-y-3">
+          <p className="font-semibold text-sm">
+            Delete this renewal entry?
+          </p>
 
           <div className="flex justify-end gap-3">
             <button
               onClick={async () => {
                 try {
-                  await api.delete(`/renewals/${renewalId}/entry/${entryId}`);
+                  await api.delete(
+                    `/renewals/${renewalId}/entry/${entryId}`
+                  );
                   toast.success("Entry Deleted");
                   loadRenewals(applicationId);
                 } catch {
@@ -119,92 +118,144 @@ const RenewalDetails = () => {
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow max-w-6xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-6">Renewal Details</h2>
+    <div className="max-w-6xl mx-auto space-y-8">
 
-      {/* ✅ SEARCH */}
-      <div className="flex gap-4 mb-6">
+      {/* ================= HEADER ================= */}
+      <div>
+        <h2 className="text-2xl font-bold text-[#3E4A8A]">
+          Renewal Details
+        </h2>
+        <p className="text-sm text-gray-500">
+          Manage trademark renewal history
+        </p>
+      </div>
+
+      {/* ================= SEARCH ================= */}
+      <div className="bg-white p-6 rounded-2xl shadow border flex flex-col md:flex-row gap-4">
         <input
           value={applicationNumber}
           onChange={(e) => setApplicationNumber(e.target.value)}
           placeholder="Enter Application Number"
-          className="p-3 border rounded w-72"
+          className="px-4 py-3 rounded-lg bg-gray-100 border
+                     focus:outline-none focus:ring-2 focus:ring-blue-200 w-full md:w-80"
         />
 
         <button
           onClick={searchApplication}
-          className="bg-gray-800 text-white px-6 rounded"
+          className="bg-[#3E4A8A] hover:bg-[#2f3970]
+                     text-white px-8 py-3 rounded-lg font-semibold"
         >
           Search
         </button>
       </div>
 
-      {/* ✅ APPLICATION INFO */}
+      {/* ================= APPLICATION INFO ================= */}
       {appData && (
-        <div className="grid grid-cols-2 gap-4 bg-gray-100 p-4 rounded mb-6 text-sm">
-          <div><b>Application #:</b> {appData.applicationNumber}</div>
-          <div><b>File #:</b> {appData.fileNumber}</div>
-          <div><b>Trademark:</b> {appData.trademark}</div>
-          <div><b>Goods:</b> {appData.goods}</div>
+        <div className="bg-white p-6 rounded-2xl shadow border grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <Info label="Application #" value={appData.applicationNumber} />
+          <Info label="File #" value={appData.fileNumber} />
+          <Info label="Trademark" value={appData.trademark} />
+          <Info label="Goods" value={appData.goods} />
         </div>
       )}
 
-      {/* ✅ FORM */}
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 mb-8">
-        <input
-          type="date"
-          value={renewedUpto}
-          onChange={(e) => setRenewedUpto(e.target.value)}
-          className="p-3 border rounded"
-          required
-        />
+      {/* ================= FORM ================= */}
+      {appData && (
+        <div className="bg-white p-6 rounded-2xl shadow border">
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
+            <Input
+              type="date"
+              value={renewedUpto}
+              onChange={(e) => setRenewedUpto(e.target.value)}
+              required
+            />
 
-        <input
-          value={remark}
-          onChange={(e) => setRemark(e.target.value)}
-          placeholder="Remark"
-          className="p-3 border rounded"
-        />
+            <Input
+              value={remark}
+              onChange={(e) => setRemark(e.target.value)}
+              placeholder="Remark"
+            />
 
-        <button className="bg-gray-800 text-white px-6 py-2 rounded col-span-2 mt-4">
-          Save Renewal
-        </button>
-      </form>
-
-      {/* ✅ GRID */}
-      <table className="w-full border-collapse text-sm">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="border p-2">#</th>
-            <th className="border p-2">Renewed Upto</th>
-            <th className="border p-2">Remark</th>
-            <th className="border p-2">Delete</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {renewal.entries?.map((item, i) => (
-            <tr key={item._id}>
-              <td className="border p-2">{i + 1}</td>
-
-              <td className="border p-2">
-                {new Date(item.renewedUpto).toLocaleDateString()}
-              </td>
-
-              <td className="border p-2">{item.remark}</td>
-
-              <td
-                className="border p-2 text-red-600 cursor-pointer"
-                onClick={() => deleteEntry(renewal._id, item._id)}
+            <div className="md:col-span-2 text-right">
+              <button
+                className="bg-[#3E4A8A] hover:bg-[#2f3970]
+                           text-white px-8 py-3 rounded-lg font-semibold"
               >
-                Delete
-              </td>
+                Save Renewal
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ================= TABLE ================= */}
+      <div className="bg-white rounded-2xl shadow border overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-3 border">#</th>
+              <th className="p-3 border">Renewed Upto</th>
+              <th className="p-3 border">Remark</th>
+              <th className="p-3 border text-center">Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {renewal.entries?.length === 0 ? (
+              <tr>
+                <td
+                  colSpan="4"
+                  className="text-center p-6 text-gray-500"
+                >
+                  No renewal records found
+                </td>
+              </tr>
+            ) : (
+              renewal.entries.map((item, i) => (
+                <tr key={item._id} className="hover:bg-gray-50">
+                  <td className="p-3 border">{i + 1}</td>
+                  <td className="p-3 border">
+                    {new Date(item.renewedUpto).toLocaleDateString()}
+                  </td>
+                  <td className="p-3 border">{item.remark || "-"}</td>
+                  <td className="p-3 border text-center">
+                    <button
+                      onClick={() =>
+                        deleteEntry(renewal._id, item._id)
+                      }
+                      className="text-red-600 font-semibold"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
     </div>
   );
 };
 
 export default RenewalDetails;
+
+/* ================= COMPONENTS ================= */
+const Input = ({ className = "", ...props }) => (
+  <input
+    {...props}
+    className={`px-4 py-3 rounded-lg bg-gray-100 border
+                focus:outline-none focus:ring-2 focus:ring-blue-200 ${className}`}
+  />
+);
+
+const Info = ({ label, value }) => (
+  <div>
+    <p className="text-xs text-gray-500">{label}</p>
+    <p className="font-semibold text-gray-800">{value || "-"}</p>
+  </div>
+);

@@ -12,153 +12,191 @@ const BasicSearchReport = () => {
     applicationNo: "",
     classFrom: "",
     classTo: "",
-    reportType: "summary"
+    reportType: "summary",
   });
 
   const [customers, setCustomers] = useState([]);
   const [result, setResult] = useState([]);
 
-  // Get applicants list
- useEffect(() => {
-  api
-    .get("/customers")
-    .then((res) => {
-      setCustomers(res.data.data || []);   // FIXED
-    })
-    .catch(() => toast.error("Failed to load applicants"));
-}, []);
+  /* ================= LOAD APPLICANTS ================= */
+  useEffect(() => {
+    api
+      .get("/customers")
+      .then((res) => setCustomers(res.data.data || []))
+      .catch(() => toast.error("Failed to load applicants"));
+  }, []);
 
   const updateField = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
+  /* ================= SEARCH ================= */
   const search = async () => {
     try {
       const res = await api.post("/reports/basic-search", filters);
-      setResult(res.data.data);
+      setResult(res.data.data || []);
       toast.success("Report generated");
     } catch (err) {
       toast.error(err.response?.data?.message || "Search failed");
     }
   };
 
-  return (
-    <div className="bg-white p-8 rounded-lg shadow max-w-5xl mx-auto">
-
-      <h2 className="text-2xl font-semibold mb-6">TM Basic Search Report</h2>
-
-      {/* ===================== FORM ======================= */}
-      <div className="grid grid-cols-2 gap-4">
-
-        <select name="searchBy" onChange={updateField} className="border p-2 rounded">
-          <option value="DateOfFiling">Date Of Filing</option>
-          <option value="ApplicationNo">Application No</option>
-        </select>
-
-        <input type="date" name="startDate" onChange={updateField} className="border p-2 rounded" />
-
-        <input type="date" name="endDate" onChange={updateField} className="border p-2 rounded" />
-
-        <input
-          name="trademark"
-          placeholder="Trademark"
-          onChange={updateField}
-          className="border p-2 rounded"
-        />
-
-        <select name="applicant" onChange={updateField} className="border p-2 rounded">
-          <option value="">Select Applicant</option>
-          {customers.map((c) => (
-            <option value={c._id} key={c._id}>
-              {c.customerName}
-            </option>
-          ))}
-        </select>
-
-        <input
-          name="applicationNo"
-          placeholder="Application No"
-          onChange={updateField}
-          className="border p-2 rounded"
-        />
-
-        <input
-          name="classFrom"
-          placeholder="Class From"
-          type="number"
-          onChange={updateField}
-          className="border p-2 rounded"
-        />
-
-        <input
-          name="classTo"
-          placeholder="Class To"
-          type="number"
-          onChange={updateField}
-          className="border p-2 rounded"
-        />
-
-        {/* SUMMARY / DETAIL */}
-        <div className="col-span-2 flex gap-6 mt-3">
-          <label className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="reportType"
-              value="summary"
-              onChange={updateField}
-              defaultChecked
-            />
-            Summary
-          </label>
-
-          <label className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="reportType"
-              value="details"
-              onChange={updateField}
-            />
-            Details
-          </label>
+  /* ================= DELETE ================= */
+  const handleDelete = (id) => {
+    toast.info(
+      ({ closeToast }) => (
+        <div className="space-y-3">
+          <p className="font-semibold text-sm">
+            Delete this application?
+          </p>
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={async () => {
+                try {
+                  await api.delete(`/applications/${id}`);
+                  toast.success("Deleted successfully");
+                  setResult(result.filter((r) => r._id !== id));
+                } catch {
+                  toast.error("Delete failed");
+                }
+                closeToast();
+              }}
+              className="bg-red-600 text-white px-4 py-1 rounded"
+            >
+              Yes
+            </button>
+            <button
+              onClick={closeToast}
+              className="bg-gray-300 px-4 py-1 rounded"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
+      ),
+      { autoClose: false }
+    );
+  };
 
-        <button
-          onClick={search}
-          className="col-span-2 bg-gray-800 text-white py-2 rounded hover:bg-gray-700 mt-3"
-        >
-          Generate
-        </button>
+  /* ================= EDIT ================= */
+  const handleEdit = (id) => {
+    // redirect to application edit page
+    window.location.href = `/admin/application-details?edit=${id}`;
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-8">
+
+      {/* ================= HEADER ================= */}
+      <div>
+        <h2 className="text-2xl font-bold text-[#3E4A8A]">
+          TM Basic Search Report
+        </h2>
+        <p className="text-sm text-gray-500">
+          Search trademark applications using filters
+        </p>
       </div>
 
-      {/* ===================== RESULTS ======================= */}
-      <div className="mt-10">
-        {result.length === 0 && <p className="text-gray-500">No results found.</p>}
+      {/* ================= FILTER CARD ================= */}
+      <div className="bg-white p-6 rounded-2xl shadow border">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-        {result.map((item, i) => (
-          <div key={i} className="border p-4 rounded mb-4 bg-gray-50">
-            <h3 className="font-bold text-lg">{item.trademark}</h3>
-            <p>Application No: {item.applicationNumber}</p>
-            <p>Applicant: {item.client?.customerName}</p>
-            <p>Date of Filing: {new Date(item.dateOfFiling).toLocaleDateString()}</p>
+          <Select name="searchBy" onChange={updateField}>
+            <option value="DateOfFiling">Date Of Filing</option>
+            <option value="ApplicationNo">Application No</option>
+          </Select>
 
+          <Input type="date" name="startDate" onChange={updateField} />
+          <Input type="date" name="endDate" onChange={updateField} />
+          <Input name="trademark" placeholder="Trademark" onChange={updateField} />
+
+          <Select name="applicant" onChange={updateField}>
+            <option value="">Select Applicant</option>
+            {customers.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.customerName}
+              </option>
+            ))}
+          </Select>
+
+          <Input name="applicationNo" placeholder="Application No" onChange={updateField} />
+          <Input name="classFrom" placeholder="Class From" type="number" onChange={updateField} />
+          <Input name="classTo" placeholder="Class To" type="number" onChange={updateField} />
+
+          {/* REPORT TYPE */}
+          <div className="md:col-span-2 flex gap-6 mt-2">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="radio" name="reportType" value="summary" defaultChecked onChange={updateField} />
+              Summary
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="radio" name="reportType" value="details" onChange={updateField} />
+              Details
+            </label>
+          </div>
+
+          <button
+            onClick={search}
+            className="md:col-span-2 bg-[#3E4A8A] hover:bg-[#2f3970]
+                       text-white py-3 rounded-lg font-semibold transition"
+          >
+            Generate Report
+          </button>
+        </div>
+      </div>
+
+      {/* ================= RESULTS ================= */}
+      <div className="space-y-4">
+        {result.length === 0 && (
+          <p className="text-gray-500 text-sm">No results found.</p>
+        )}
+
+        {result.map((item) => (
+          <div
+            key={item._id}
+            className="bg-white border rounded-2xl shadow-sm p-5"
+          >
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <h3 className="font-bold text-lg text-[#3E4A8A]">
+                  {item.trademark}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Application #: {item.applicationNumber}
+                </p>
+                <p className="text-sm">
+                  Applicant: {item.client?.customerName}
+                </p>
+                <p className="text-sm">
+                  Filing Date:{" "}
+                  {new Date(item.dateOfFiling).toLocaleDateString()}
+                </p>
+              </div>
+
+              {/* ACTIONS */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleEdit(item._id)}
+                  className="px-4 py-1 rounded bg-blue-100 text-[#3E4A8A] text-sm font-semibold"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(item._id)}
+                  className="px-4 py-1 rounded bg-red-100 text-red-600 text-sm font-semibold"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+
+            {/* DETAILS VIEW */}
             {filters.reportType === "details" && (
-              <>
-                <hr className="my-3" />
-                <p className="text-sm text-gray-600 font-semibold">Hearings:</p>
-                <pre className="text-xs">
-                  {JSON.stringify(item.hearings?.hearings || [], null, 2)}
-                </pre>
-
-                <p className="text-sm text-gray-600 font-semibold mt-3">Journals:</p>
-                <pre className="text-xs">
-                  {JSON.stringify(item.journals?.entries || [], null, 2)}
-                </pre>
-
-                <p className="text-sm text-gray-600 font-semibold mt-3">Renewals:</p>
-                <pre className="text-xs">
-                  {JSON.stringify(item.renewals?.entries || [], null, 2)}
-                </pre>
-              </>
+              <div className="mt-4 text-xs bg-gray-50 rounded-lg p-3 space-y-2">
+                <Section title="Hearings" data={item.hearings?.hearings} />
+                <Section title="Journals" data={item.journals?.entries} />
+                <Section title="Renewals" data={item.renewals?.entries} />
+              </div>
             )}
           </div>
         ))}
@@ -169,3 +207,32 @@ const BasicSearchReport = () => {
 };
 
 export default BasicSearchReport;
+
+/* ================= UI HELPERS ================= */
+
+const Input = ({ className = "", ...props }) => (
+  <input
+    {...props}
+    className={`px-4 py-3 rounded-lg bg-gray-100 border
+                focus:outline-none focus:ring-2 focus:ring-blue-200 ${className}`}
+  />
+);
+
+const Select = ({ className = "", children, ...props }) => (
+  <select
+    {...props}
+    className={`px-4 py-3 rounded-lg bg-gray-100 border
+                focus:outline-none focus:ring-2 focus:ring-blue-200 ${className}`}
+  >
+    {children}
+  </select>
+);
+
+const Section = ({ title, data }) => (
+  <>
+    <p className="font-semibold text-gray-600">{title}</p>
+    <pre className="overflow-x-auto">
+      {JSON.stringify(data || [], null, 2)}
+    </pre>
+  </>
+);

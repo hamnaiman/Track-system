@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import api from "../../../api/api";
-
 import { toast } from "react-toastify";
 
 const TMSingleQuery = () => {
@@ -8,9 +7,7 @@ const TMSingleQuery = () => {
   const [searchValue, setSearchValue] = useState("");
   const [appData, setAppData] = useState(null);
 
-  // ------------------------------
-  // SEARCH HANDLER
-  // ------------------------------
+  /* ================= SEARCH ================= */
   const handleSearch = async () => {
     if (!searchValue.trim()) {
       toast.warning("Please enter search value");
@@ -31,144 +28,128 @@ const TMSingleQuery = () => {
 
       setAppData(res.data.data);
       toast.success("Record loaded");
-
     } catch (err) {
       toast.error(err.response?.data?.message || "Search failed");
     }
   };
 
   return (
-    <div className="bg-white p-8 rounded-lg shadow max-w-5xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-6">TM Single Query</h2>
+    <div className="max-w-6xl mx-auto space-y-8">
 
-      {/* SEARCH BAR */}
-      <div className="flex gap-4 mb-6">
-        <select
-          value={searchBy}
-          onChange={(e) => setSearchBy(e.target.value)}
-          className="border px-3 py-2 rounded"
-        >
-          <option value="applicationNumber">Application #</option>
-          <option value="fileNumber">File #</option>
-          <option value="trademark">Trademark</option>
-        </select>
-
-        <input
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-          placeholder="Enter search value"
-          className="border px-3 py-2 rounded flex-1"
-        />
-
-        <button
-          onClick={handleSearch}
-          className="bg-gray-800 text-white px-6 py-2 rounded"
-        >
-          Search
-        </button>
+      {/* ================= HEADER ================= */}
+      <div>
+        <h2 className="text-2xl font-bold text-[#3E4A8A]">
+          TM Single Query
+        </h2>
+        <p className="text-sm text-gray-500">
+          Search trademark application by number, file, or trademark name
+        </p>
       </div>
 
-      {/* RESULT VIEW */}
+      {/* ================= SEARCH CARD ================= */}
+      <div className="bg-white rounded-2xl shadow border p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+          <select
+            value={searchBy}
+            onChange={(e) => setSearchBy(e.target.value)}
+            className="px-4 py-3 rounded-lg bg-gray-100 border
+                       focus:outline-none focus:ring-2 focus:ring-blue-200"
+          >
+            <option value="applicationNumber">Application #</option>
+            <option value="fileNumber">File #</option>
+            <option value="trademark">Trademark</option>
+          </select>
+
+          <input
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            placeholder="Enter search value"
+            className="px-4 py-3 rounded-lg bg-gray-100 border
+                       focus:outline-none focus:ring-2 focus:ring-blue-200"
+          />
+
+          <button
+            onClick={handleSearch}
+            className="bg-[#3E4A8A] hover:bg-[#2f3970]
+                       text-white font-semibold rounded-lg px-6 py-3"
+          >
+            Search
+          </button>
+        </div>
+      </div>
+
+      {/* ================= RESULT ================= */}
       {appData && (
-        <div className="border rounded-lg p-6 bg-gray-50">
-          <h3 className="text-lg font-semibold mb-4">TM Single Query Result</h3>
+        <div className="bg-white rounded-2xl shadow border p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-6">
+            Application Details
+          </h3>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
-            <Field label="Application #" value={appData.applicationNumber} />
-            <Field label="File #" value={appData.fileNumber} />
-
-            <Field
+            <Info label="Application #" value={appData.applicationNumber} />
+            <Info label="File #" value={appData.fileNumber} />
+            <Info
               label="Date of Filing"
-              value={new Date(appData.dateOfFiling).toLocaleDateString()}
+              value={formatDate(appData.dateOfFiling)}
             />
-
-            <Field
+            <Info
               label="Take Over Date"
-              value={
-                appData.takeOverDate
-                  ? new Date(appData.takeOverDate).toLocaleDateString()
-                  : ""
-              }
+              value={formatDate(appData.takeOverDate)}
             />
-
-            <Field label="Period of Use" value={appData.periodOfUse} />
-
-            <Field label="Trademark" value={appData.trademark} />
-
-            <Field
+            <Info label="Period of Use" value={appData.periodOfUse} />
+            <Info label="Trademark" value={appData.trademark} />
+            <Info
               label="Classes"
-              value={(appData.classes || []).map((c) => c.classNumber).join(", ")}
+              value={(appData.classes || [])
+                .map((c) => c.classNumber)
+                .join(", ")}
             />
-
-            <Field label="Goods" value={appData.goods} />
-
-            <Field
-              label="Client Name"
-              value={appData.client?.customerName || ""}
+            <Info label="Goods" value={appData.goods} />
+            <Info
+              label="Client"
+              value={appData.client?.customerName}
             />
-
-            <Field
+            <Info
               label="Show Cause Received"
               value={appData.showCauseReceived ? "Yes" : "No"}
             />
-
-            <Field
-              label="Evidence Sub. Date"
-              value={
-                appData.evidenceSubDate
-                  ? new Date(appData.evidenceSubDate).toLocaleDateString()
-                  : ""
-              }
+            <Info
+              label="Evidence Submission Date"
+              value={formatDate(appData.evidenceSubDate)}
             />
-
-            <Field
+            <Info
               label="Acceptance Received Date"
-              value={
-                appData.acceptanceReceivedDate
-                  ? new Date(appData.acceptanceReceivedDate).toLocaleDateString()
-                  : ""
-              }
+              value={formatDate(appData.acceptanceReceivedDate)}
             />
-
-            <Field
-              label="Acceptance Sent To Client"
+            <Info
+              label="Acceptance Sent to Client"
               value={appData.acceptanceSendToClient ? "Yes" : "No"}
             />
-
-            <Field label="Opposition" value={appData.opposition ? "Yes" : "No"} />
-
-            <Field
-              label="Demand Note Rec. Date"
-              value={
-                appData.demandNoteRecDate
-                  ? new Date(appData.demandNoteRecDate).toLocaleDateString()
-                  : ""
-              }
+            <Info
+              label="Opposition"
+              value={appData.opposition ? "Yes" : "No"}
             />
-
-            <Field
-              label="Demand Note Sent To Client"
+            <Info
+              label="Demand Note Received Date"
+              value={formatDate(appData.demandNoteRecDate)}
+            />
+            <Info
+              label="Demand Note Sent to Client"
               value={appData.demandNoteSendToClient ? "Yes" : "No"}
             />
-
-            <Field
+            <Info
               label="Certificate Issued"
               value={appData.certificateIssued ? "Yes" : "No"}
             />
-
-            <Field
+            <Info
               label="Certificate Received Date"
-              value={
-                appData.certificateReceivedDate
-                  ? new Date(appData.certificateReceivedDate).toLocaleDateString()
-                  : ""
-              }
+              value={formatDate(appData.certificateReceivedDate)}
             />
+            <Info label="Status" value={appData.status?.description} />
+            <Info label="Remarks" value={appData.remarks} />
 
-            <Field label="Remarks" value={appData.remarks || ""} />
-
-            <Field label="Status" value={appData.status?.description || ""} />
           </div>
         </div>
       )}
@@ -176,16 +157,20 @@ const TMSingleQuery = () => {
   );
 };
 
-// Controlled Readonly Field
-const Field = ({ label, value }) => (
-  <div>
-    <p className="text-sm font-semibold">{label}:</p>
-    <input
-      readOnly
-      value={value || ""}
-      className="border px-3 py-2 rounded bg-gray-200 w-full"
-    />
+export default TMSingleQuery;
+
+/* ================= SMALL COMPONENTS ================= */
+
+const Info = ({ label, value }) => (
+  <div className="bg-gray-50 border rounded-lg p-4">
+    <p className="text-xs text-gray-500 font-semibold mb-1">
+      {label}
+    </p>
+    <p className="text-sm font-medium text-gray-800 break-words">
+      {value || "-"}
+    </p>
   </div>
 );
 
-export default TMSingleQuery;
+const formatDate = (date) =>
+  date ? new Date(date).toLocaleDateString() : "-";

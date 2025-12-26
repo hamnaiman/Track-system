@@ -15,17 +15,13 @@ const Hearings = () => {
 
   const loadApplications = async () => {
     try {
-      // ✅ USER ENDPOINT
       const res = await api.get("/applications");
-
-      // ✅ SAFE NORMALIZATION
       const apps = Array.isArray(res.data)
         ? res.data
         : res.data?.data || [];
-
       setApplications(apps);
     } catch (err) {
-      console.error("Failed to load applications", err);
+      console.error(err);
       setApplications([]);
       setError("Failed to load applications");
     }
@@ -42,8 +38,7 @@ const Hearings = () => {
     try {
       const res = await api.get(`/hearings/${appId}`);
       setHearingData(res.data?.data || null);
-    } catch (err) {
-      console.error("No hearing found");
+    } catch {
       setError("No hearing record found for this application");
       setHearingData(null);
     } finally {
@@ -52,24 +47,26 @@ const Hearings = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col gap-5">
 
-      {/* HEADER */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Hearings</h2>
+      {/* ===== HEADER ===== */}
+      <div>
+        <h2 className="text-2xl font-semibold text-[#3E4A8A]">
+          Hearings
+        </h2>
         <p className="text-sm text-gray-500">
           View date-wise hearing records of your trademark applications
         </p>
       </div>
 
-      {/* APPLICATION SELECT */}
-      <div className="bg-white border rounded p-4 mb-6">
+      {/* ===== APPLICATION SELECT CARD ===== */}
+      <div className="bg-white border rounded-lg shadow-sm p-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Select Application
         </label>
 
         <select
-          className="w-full border rounded px-3 py-2"
+          className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
           value={selectedApp}
           onChange={(e) => {
             const value = e.target.value;
@@ -85,81 +82,104 @@ const Hearings = () => {
 
           {applications.map((app) => (
             <option key={app._id} value={app._id}>
-              {app.applicationNumber} - {app.trademark}
+              {app.applicationNumber} — {app.trademark}
             </option>
           ))}
         </select>
       </div>
 
-      {/* LOADING */}
+      {/* ===== LOADING ===== */}
       {loading && (
-        <div className="text-gray-500">Loading hearings...</div>
+        <div className="text-gray-500 text-sm">
+          Loading hearing details...
+        </div>
       )}
 
-      {/* ERROR */}
+      {/* ===== ERROR ===== */}
       {error && (
-        <div className="text-red-500 bg-red-50 border border-red-200 p-3 rounded">
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded text-sm">
           {error}
         </div>
       )}
 
-      {/* HEARING DATA */}
+      {/* ===== HEARING DATA ===== */}
       {!loading && hearingData && (
-        <div className="bg-white border rounded shadow-sm">
+        <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
 
           {/* APPLICATION INFO */}
-          <div className="border-b px-4 py-3 bg-gray-50">
-            <p className="text-sm">
-              <strong>Application No:</strong>{" "}
+          <div className="px-4 py-3 border-b bg-gray-50 text-sm">
+            <p>
+              <span className="font-medium text-gray-700">
+                Application No:
+              </span>{" "}
               {hearingData.application?.applicationNumber}
             </p>
-            <p className="text-sm">
-              <strong>Trademark:</strong>{" "}
+            <p>
+              <span className="font-medium text-gray-700">
+                Trademark:
+              </span>{" "}
               {hearingData.application?.trademark}
             </p>
           </div>
 
           {/* TABLE */}
-          <div className="overflow-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead className="bg-gray-100">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm border-collapse">
+
+              <thead className="bg-gray-100 text-gray-700">
                 <tr>
-                  <th className="border px-3 py-2">Hearing Date</th>
-                  <th className="border px-3 py-2">Before</th>
-                  <th className="border px-3 py-2">Comments / Arguments</th>
-                  <th className="border px-3 py-2">Advocate Appeared</th>
+                  <th className="border px-4 py-2 text-left whitespace-nowrap">
+                    Hearing Date
+                  </th>
+                  <th className="border px-4 py-2 text-left">
+                    Before
+                  </th>
+                  <th className="border px-4 py-2 text-left">
+                    Comments / Arguments
+                  </th>
+                  <th className="border px-4 py-2 text-left">
+                    Advocate Appeared
+                  </th>
                 </tr>
               </thead>
+
               <tbody>
                 {hearingData.hearings?.length === 0 && (
                   <tr>
-                    <td colSpan="4" className="text-center py-6 text-gray-500">
+                    <td
+                      colSpan="4"
+                      className="text-center py-6 text-gray-500"
+                    >
                       No hearing records found
                     </td>
                   </tr>
                 )}
 
                 {hearingData.hearings?.map((row) => (
-                  <tr key={row._id}>
-                    <td className="border px-3 py-2">
+                  <tr
+                    key={row._id}
+                    className="hover:bg-blue-50 transition"
+                  >
+                    <td className="border px-4 py-2 whitespace-nowrap">
                       {new Date(row.hearingDate).toLocaleDateString()}
                     </td>
-                    <td className="border px-3 py-2">{row.before}</td>
-                    <td className="border px-3 py-2">
+                    <td className="border px-4 py-2">
+                      {row.before}
+                    </td>
+                    <td className="border px-4 py-2">
                       {row.commentsArguments || "-"}
                     </td>
-                    <td className="border px-3 py-2">
+                    <td className="border px-4 py-2">
                       {row.advocateAppeared || "-"}
                     </td>
                   </tr>
                 ))}
               </tbody>
+
             </table>
           </div>
-
         </div>
       )}
-
     </div>
   );
 };

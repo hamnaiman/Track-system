@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import api from "../../../api/api";
-
 import { toast } from "react-toastify";
 
 const ClassSetup = () => {
@@ -13,12 +12,12 @@ const ClassSetup = () => {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Load Classes
+  /* ===== FETCH ===== */
   const fetchClasses = async () => {
     try {
       const res = await api.get("/classes");
       setClasses(res.data || []);
-    } catch (err) {
+    } catch {
       toast.error("Unable to load classes");
     }
   };
@@ -27,12 +26,12 @@ const ClassSetup = () => {
     fetchClasses();
   }, []);
 
-  // ✅ Input Change
+  /* ===== CHANGE ===== */
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ✅ CREATE or UPDATE CLASS
+  /* ===== CREATE / UPDATE ===== */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -45,13 +44,11 @@ const ClassSetup = () => {
       setLoading(true);
 
       if (editingId) {
-        // UPDATE
         await api.put(`/classes/${editingId}`, form);
-        toast.success("Class Updated Successfully");
+        toast.success("Class updated successfully");
       } else {
-        // CREATE
         await api.post("/classes", form);
-        toast.success("Class Added Successfully");
+        toast.success("Class added successfully");
       }
 
       setForm({ classNumber: "", description: "" });
@@ -64,7 +61,7 @@ const ClassSetup = () => {
     }
   };
 
-  // ✅ EDIT
+  /* ===== EDIT ===== */
   const handleEdit = (cls) => {
     setForm({
       classNumber: cls.classNumber,
@@ -73,13 +70,13 @@ const ClassSetup = () => {
     setEditingId(cls._id);
   };
 
-  // ✅ ✅ ✅ PROFESSIONAL DELETE WITH TOAST CONFIRMATION
+  /* ===== DELETE ===== */
   const handleDelete = (id) => {
     toast.info(
       ({ closeToast }) => (
         <div className="flex flex-col gap-3">
           <p className="font-semibold text-sm">
-            Are you sure you want to delete this Class?
+            Are you sure you want to delete this class?
           </p>
 
           <div className="flex gap-3 justify-end">
@@ -87,9 +84,9 @@ const ClassSetup = () => {
               onClick={async () => {
                 try {
                   await api.delete(`/classes/${id}`);
-                  toast.success("Class Deleted Successfully");
+                  toast.success("Class deleted successfully");
                   fetchClasses();
-                } catch (err) {
+                } catch {
                   toast.error("Delete failed");
                 }
                 closeToast();
@@ -101,112 +98,137 @@ const ClassSetup = () => {
 
             <button
               onClick={closeToast}
-              className="bg-gray-300 px-3 py-1 rounded"
+              className="bg-gray-200 px-3 py-1 rounded"
             >
               Cancel
             </button>
           </div>
         </div>
       ),
-      {
-        autoClose: false,
-        closeOnClick: false,
-      }
+      { autoClose: false, closeOnClick: false }
     );
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow-lg max-w-5xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-6">Class Setup</h2>
+    <div className="max-w-5xl mx-auto space-y-8">
 
-      {/* ✅ FORM */}
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 mb-8">
-        <input
-          type="number"
-          name="classNumber"
-          value={form.classNumber}
-          onChange={handleChange}
-          placeholder="Class Number"
-          className="p-3 border rounded"
-          required
-        />
+      {/* ===== FORM CARD ===== */}
+      <div className="bg-white rounded-2xl shadow-md border p-8">
+        <h2 className="text-2xl font-bold text-[#3E4A8A] mb-6">
+          Class Setup
+        </h2>
 
-        <textarea
-          name="description"
-          value={form.description}
-          onChange={handleChange}
-          placeholder="Description"
-          className="p-3 border rounded h-32"
-          required
-        />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="number"
+            name="classNumber"
+            value={form.classNumber}
+            onChange={handleChange}
+            placeholder="Class Number"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300
+                       focus:outline-none focus:ring-2 focus:ring-blue-200"
+            required
+          />
 
-        <div className="flex gap-4 mt-2">
-          <button
-            disabled={loading}
-            className="bg-gray-800 text-white px-6 py-2 rounded disabled:opacity-60"
-          >
-            {loading ? "Processing..." : editingId ? "Update" : "Save"}
-          </button>
+          <textarea
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            placeholder="Description"
+            rows={4}
+            className="w-full px-4 py-3 rounded-lg border border-gray-300
+                       focus:outline-none focus:ring-2 focus:ring-blue-200"
+            required
+          />
 
-          {editingId && (
+          <div className="flex flex-wrap gap-4 pt-2">
             <button
-              type="button"
-              onClick={() => {
-                setEditingId(null);
-                setForm({ classNumber: "", description: "" });
-              }}
-              className="px-6 py-2 bg-gray-400 text-white rounded"
+              disabled={loading}
+              className="bg-[#3E4A8A] hover:bg-[#2f3970]
+                         text-white px-6 py-3 rounded-lg font-semibold
+                         transition disabled:opacity-60"
             >
-              Cancel
+              {loading ? "Processing..." : editingId ? "Update" : "Save"}
             </button>
-          )}
-        </div>
-      </form>
 
-      {/* ✅ TABLE */}
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="bg-gray-200 text-left">
-            <th className="border p-2 w-16">S.No</th>
-            <th className="border p-2 w-24">Class</th>
-            <th className="border p-2">Description</th>
-            <th className="border p-2 w-16">Edit</th>
-            <th className="border p-2 w-20">Delete</th>
-          </tr>
-        </thead>
+            {editingId && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingId(null);
+                  setForm({ classNumber: "", description: "" });
+                }}
+                className="px-6 py-3 rounded-lg border border-gray-300
+                           text-gray-700 hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
 
-        <tbody>
-          {classes.length === 0 ? (
-            <tr>
-              <td colSpan="5" className="text-center p-4 text-gray-500">
-                No Classes Found
-              </td>
-            </tr>
-          ) : (
-            classes.map((cls, index) => (
-              <tr key={cls._id} className="border">
-                <td className="border p-2">{index + 1}</td>
-                <td className="border p-2">{cls.classNumber}</td>
-                <td className="border p-2">{cls.description}</td>
+      {/* ===== TABLE CARD ===== */}
+      <div className="bg-white rounded-2xl shadow-md border p-6">
+        <h3 className="text-xl font-bold text-[#3E4A8A] mb-4">
+          Classes List
+        </h3>
 
-                <td
-                  className="border p-2 text-blue-600 cursor-pointer hover:underline"
-                  onClick={() => handleEdit(cls)}
-                >
-                  Edit
-                </td>
-
-                <td
-                  className="border p-2 text-red-600 cursor-pointer hover:underline"
-                  onClick={() => handleDelete(cls._id)}
-                >
-                  Delete
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead className="bg-blue-50 text-[#3E4A8A]">
+              <tr>
+                <th className="p-3 border text-left w-16">#</th>
+                <th className="p-3 border text-left w-24">Class</th>
+                <th className="p-3 border text-left">Description</th>
+                <th className="p-3 border text-center w-16">Edit</th>
+                <th className="p-3 border text-center w-20">Delete</th>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            </thead>
+
+            <tbody>
+              {classes.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="5"
+                    className="text-center p-4 text-gray-500"
+                  >
+                    No classes found
+                  </td>
+                </tr>
+              ) : (
+                classes.map((cls, index) => (
+                  <tr
+                    key={cls._id}
+                    className="border-b hover:bg-gray-50"
+                  >
+                    <td className="p-3">{index + 1}</td>
+                    <td className="p-3">{cls.classNumber}</td>
+                    <td className="p-3">{cls.description}</td>
+
+                    <td
+                      onClick={() => handleEdit(cls)}
+                      className="p-3 text-center text-[#3E4A8A]
+                                 cursor-pointer hover:underline"
+                    >
+                      Edit
+                    </td>
+
+                    <td
+                      onClick={() => handleDelete(cls._id)}
+                      className="p-3 text-center text-red-600
+                                 cursor-pointer hover:underline"
+                    >
+                      Delete
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   );
 };

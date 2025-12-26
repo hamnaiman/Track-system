@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import api from "../../../api/api";
 import { toast } from "react-toastify";
 
@@ -11,13 +11,13 @@ const OppositionFormEntries = () => {
     oppositionNumber: "",
     formNumber: "",
     filingDate: "",
-    remarks: ""
+    remarks: "",
   });
 
   /* ================= FETCH GRID ================= */
   const fetchEntries = async () => {
-    if (!applicationNumber) {
-      toast.warn("Enter application number");
+    if (!applicationNumber.trim()) {
+      toast.warning("Enter application number");
       return;
     }
 
@@ -46,15 +46,16 @@ const OppositionFormEntries = () => {
     try {
       await api.post("/opposition/forms", {
         applicationNumber,
-        ...form
+        ...form,
       });
 
-      toast.success("Form entry added");
+      toast.success("Opposition form entry added");
+
       setForm({
         oppositionNumber: "",
         formNumber: "",
         filingDate: "",
-        remarks: ""
+        remarks: "",
       });
 
       fetchEntries();
@@ -71,138 +72,147 @@ const OppositionFormEntries = () => {
       await api.delete(`/opposition/forms/${id}`);
       toast.success("Entry deleted");
       fetchEntries();
-    } catch (err) {
+    } catch {
       toast.error("Delete failed");
     }
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="min-h-[70vh] px-4 py-6 flex justify-center">
+      <div className="w-full max-w-6xl bg-white border rounded-2xl shadow-lg p-6">
 
-      {/* HEADER */}
-      <h1 className="text-xl font-semibold text-gray-800 mb-1">
-        Opposition Form Entries
-      </h1>
-      <p className="text-sm text-gray-600 mb-4">
-        Maintain records of opposition forms submitted against a specific application.
-      </p>
-
-      {/* SEARCH */}
-      <div className="bg-white border rounded p-4 mb-6 flex items-center gap-3">
-        <label className="text-sm font-medium text-gray-700">
-          Application #
-        </label>
-        <input
-          type="text"
-          value={applicationNumber}
-          onChange={(e) => setApplicationNumber(e.target.value)}
-          className="border rounded px-3 py-1 text-sm w-48"
-        />
-        <button
-          onClick={fetchEntries}
-          className="bg-gray-700 text-white px-4 py-1 rounded text-sm"
-        >
-          Search
-        </button>
-      </div>
-
-      {/* FORM ENTRY */}
-      <div className="bg-white border rounded p-5 mb-6">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">
-          Opposition Form Entry
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-          <input
-            placeholder="Opposition #"
-            value={form.oppositionNumber}
-            onChange={(e) =>
-              setForm({ ...form, oppositionNumber: e.target.value })
-            }
-            className="border rounded px-3 py-2 text-sm"
-          />
-
-          <input
-            placeholder="Form #"
-            value={form.formNumber}
-            onChange={(e) =>
-              setForm({ ...form, formNumber: e.target.value })
-            }
-            className="border rounded px-3 py-2 text-sm"
-          />
-
-          <input
-            type="date"
-            value={form.filingDate}
-            onChange={(e) =>
-              setForm({ ...form, filingDate: e.target.value })
-            }
-            className="border rounded px-3 py-2 text-sm"
-          />
-
-          <input
-            placeholder="Remarks"
-            value={form.remarks}
-            onChange={(e) =>
-              setForm({ ...form, remarks: e.target.value })
-            }
-            className="border rounded px-3 py-2 text-sm"
-          />
+        {/* HEADER */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-[#3E4A8A]">
+            Opposition Form Entries
+          </h2>
+          <p className="text-sm text-gray-500">
+            Manage opposition form submissions against an application
+          </p>
         </div>
 
-        <button
-          onClick={handleAdd}
-          className="bg-gray-700 text-white px-6 py-2 rounded text-sm"
-        >
-          Update
-        </button>
-      </div>
+        {/* SEARCH */}
+        <div className="bg-gray-50 border rounded-xl p-4 mb-6 flex flex-col sm:flex-row gap-3 items-end">
+          <div className="flex-1">
+            <label className="block text-sm font-medium mb-1">
+              Application Number
+            </label>
+            <input
+              value={applicationNumber}
+              onChange={(e) => setApplicationNumber(e.target.value)}
+              className="w-full border rounded-lg px-3 py-2"
+              placeholder="Enter Application Number"
+            />
+          </div>
 
-      {/* GRID */}
-      <div className="bg-white border rounded">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-100 text-gray-700">
-            <tr>
-              <th className="p-2 text-left">Form #</th>
-              <th className="p-2 text-left">Filing Date</th>
-              <th className="p-2 text-left">Remarks</th>
-              <th className="p-2 text-center">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+          <button
+            onClick={fetchEntries}
+            className="bg-[#3E4A8A] text-white px-6 py-2 rounded-lg hover:bg-[#2f3970]"
+          >
+            Search
+          </button>
+        </div>
+
+        {/* FORM ENTRY */}
+        <div className="border rounded-xl bg-gray-50 p-5 mb-6">
+          <h3 className="font-semibold text-gray-700 mb-4">
+            Add Opposition Form Entry
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <input
+              placeholder="Opposition Number"
+              value={form.oppositionNumber}
+              onChange={(e) =>
+                setForm({ ...form, oppositionNumber: e.target.value })
+              }
+              className="border rounded-lg px-3 py-2"
+            />
+
+            <input
+              placeholder="Form Number"
+              value={form.formNumber}
+              onChange={(e) =>
+                setForm({ ...form, formNumber: e.target.value })
+              }
+              className="border rounded-lg px-3 py-2"
+            />
+
+            <input
+              type="date"
+              value={form.filingDate}
+              onChange={(e) =>
+                setForm({ ...form, filingDate: e.target.value })
+              }
+              className="border rounded-lg px-3 py-2"
+            />
+
+            <input
+              placeholder="Remarks (optional)"
+              value={form.remarks}
+              onChange={(e) =>
+                setForm({ ...form, remarks: e.target.value })
+              }
+              className="border rounded-lg px-3 py-2"
+            />
+          </div>
+
+          <button
+            onClick={handleAdd}
+            className="bg-gray-800 text-white px-6 py-2 rounded-lg"
+          >
+            Save Entry
+          </button>
+        </div>
+
+        {/* GRID */}
+        <div className="overflow-x-auto border rounded-xl">
+          <table className="min-w-full text-sm">
+            <thead className="bg-gray-100 text-gray-700">
               <tr>
-                <td colSpan="4" className="p-4 text-center text-gray-500">
-                  Loading...
-                </td>
+                <th className="p-3 text-left">Form #</th>
+                <th className="p-3 text-left">Filing Date</th>
+                <th className="p-3 text-left">Remarks</th>
+                <th className="p-3 text-center">Action</th>
               </tr>
-            ) : entries.length === 0 ? (
-              <tr>
-                <td colSpan="4" className="p-4 text-center text-gray-500">
-                  No entries found
-                </td>
-              </tr>
-            ) : (
-              entries.map((e) => (
-                <tr key={e._id} className="border-t">
-                  <td className="p-2">{e.formNumber}</td>
-                  <td className="p-2">
-                    {new Date(e.filingDate).toLocaleDateString()}
-                  </td>
-                  <td className="p-2">{e.remarks || "-"}</td>
-                  <td className="p-2 text-center">
-                    <button
-                      onClick={() => handleDelete(e._id)}
-                      className="text-red-600 hover:underline"
-                    >
-                      Delete
-                    </button>
+            </thead>
+
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="4" className="p-6 text-center text-gray-500">
+                    Loading...
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : entries.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="p-6 text-center text-gray-500">
+                    No entries found
+                  </td>
+                </tr>
+              ) : (
+                entries.map((e) => (
+                  <tr key={e._id} className="border-t hover:bg-gray-50">
+                    <td className="p-3">{e.formNumber}</td>
+                    <td className="p-3">
+                      {new Date(e.filingDate).toLocaleDateString()}
+                    </td>
+                    <td className="p-3">{e.remarks || "-"}</td>
+                    <td className="p-3 text-center">
+                      <button
+                        onClick={() => handleDelete(e._id)}
+                        className="text-red-600 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
       </div>
     </div>
   );

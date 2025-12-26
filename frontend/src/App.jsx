@@ -80,6 +80,10 @@ import MonthlyEntries from "./pages/User/Journal/MonthlyEntries";
 import UserCompareJournal from "./pages/User/Journal/CompareJournal";
 import ManualSearch from "./pages/User/Journal/ManualSearch";
 
+/* USER → OPPOSITION */
+import UserOppositionDocuments from "./pages/User/Opposition/Documents";
+import UserOppositionReport from "./pages/User/Opposition/Reports";
+
 /* USER → REPORTS */
 import UserBasicSearch from "./pages/User/Reports/BasicSearch";
 import UserReminderReport from "./pages/User/Reports/ReminderReport";
@@ -100,7 +104,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        {/* ADMIN */}
+        {/* ================= ADMIN ================= */}
         <Route path="/admin" element={<AdminRoutes />}>
           <Route element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
@@ -151,7 +155,7 @@ function App() {
           </Route>
         </Route>
 
-        {/* USER */}
+        {/* ================= USER ================= */}
         <Route path="/user" element={<UserRoutes />}>
           <Route element={<UserLayout />}>
             <Route path="dashboard" element={<UserDashboard />} />
@@ -169,6 +173,10 @@ function App() {
             <Route path="journal/compare" element={<UserCompareJournal />} />
             <Route path="journal/search-manual" element={<ManualSearch />} />
 
+            {/* OPPOSITION */}
+            <Route path="opposition/documents" element={<UserOppositionDocuments />} />
+            <Route path="opposition/report" element={<UserOppositionReport />} />
+
             {/* REPORTS */}
             <Route path="reports/basic-search" element={<UserBasicSearch />} />
             <Route path="reports/reminder" element={<UserReminderReport />} />
@@ -180,7 +188,7 @@ function App() {
           </Route>
         </Route>
 
-        {/* AGENT */}
+        {/* ================= AGENT ================= */}
         <Route path="/agent" element={<AgentRoutes />}>
           <Route element={<AgentLayout />}>
             <Route path="dashboard" element={<AgentDashboard />} />

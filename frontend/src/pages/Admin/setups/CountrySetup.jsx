@@ -8,12 +8,12 @@ const CountrySetup = () => {
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Load all countries
+  /* ===== FETCH ===== */
   const fetchCountries = async () => {
     try {
       const res = await api.get("/countries");
       setCountries(res.data || []);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load countries");
     }
   };
@@ -22,7 +22,7 @@ const CountrySetup = () => {
     fetchCountries();
   }, []);
 
-  // CREATE / UPDATE COUNTRY
+  /* ===== CREATE / UPDATE ===== */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -52,19 +52,19 @@ const CountrySetup = () => {
     }
   };
 
-  // EDIT COUNTRY
+  /* ===== EDIT ===== */
   const handleEdit = (country) => {
     setName(country.name);
     setEditId(country._id);
   };
 
-  // DELETE COUNTRY (Professional Toast Confirmation)
+  /* ===== DELETE (CONFIRM) ===== */
   const handleDelete = (id) => {
     toast.info(
       ({ closeToast }) => (
         <div className="flex flex-col gap-3">
           <p className="font-semibold text-sm">
-            Are you sure you want to delete this Country?
+            Are you sure you want to delete this country?
           </p>
 
           <div className="flex gap-3 justify-end">
@@ -74,7 +74,7 @@ const CountrySetup = () => {
                   await api.delete(`/countries/${id}`);
                   toast.success("Country deleted successfully");
                   fetchCountries();
-                } catch (err) {
+                } catch {
                   toast.error("Delete failed");
                 }
                 closeToast();
@@ -86,7 +86,7 @@ const CountrySetup = () => {
 
             <button
               onClick={closeToast}
-              className="bg-gray-300 px-3 py-1 rounded"
+              className="bg-gray-200 px-3 py-1 rounded"
             >
               Cancel
             </button>
@@ -98,84 +98,111 @@ const CountrySetup = () => {
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow-lg">
-      <h2 className="text-2xl font-semibold mb-6">Country Setup</h2>
+    <div className="max-w-5xl mx-auto space-y-8">
 
-      {/* FORM */}
-      <form onSubmit={handleSubmit} className="flex gap-4 mb-6">
-        <input
-          type="text"
-          placeholder="Country Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="p-3 border rounded w-80"
-        />
+      {/* ===== FORM CARD ===== */}
+      <div className="bg-white rounded-2xl shadow-md border p-8">
+        <h2 className="text-2xl font-bold text-[#3E4A8A] mb-6">
+          Country Setup
+        </h2>
 
-        <button
-          disabled={loading}
-          className="bg-gray-800 text-white px-6 py-2 rounded disabled:opacity-60"
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col sm:flex-row gap-4"
         >
-          {loading ? "Processing..." : editId ? "Update" : "Save"}
-        </button>
+          <input
+            type="text"
+            placeholder="Enter country name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full sm:w-80 px-4 py-3 rounded-lg border border-gray-300
+                       focus:outline-none focus:ring-2 focus:ring-blue-200"
+          />
 
-        {editId && (
           <button
-            type="button"
-            onClick={() => {
-              setEditId(null);
-              setName("");
-            }}
-            className="bg-gray-400 text-white px-6 py-2 rounded"
+            disabled={loading}
+            className="bg-[#3E4A8A] hover:bg-[#2f3970]
+                       text-white px-6 py-3 rounded-lg font-semibold
+                       transition disabled:opacity-60"
           >
-            Cancel
+            {loading ? "Processing..." : editId ? "Update" : "Save"}
           </button>
-        )}
-      </form>
 
-      {/* TABLE */}
-      <div className="overflow-x-auto">
-        <table className="w-full border text-sm">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="p-2 border">S.No</th>
-              <th className="p-2 border">Country Name</th>
-              <th className="p-2 border">Edit</th>
-              <th className="p-2 border">Delete</th>
-            </tr>
-          </thead>
+          {editId && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditId(null);
+                setName("");
+              }}
+              className="px-6 py-3 rounded-lg border border-gray-300
+                         text-gray-700 hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
+          )}
+        </form>
+      </div>
 
-          <tbody>
-            {countries.length === 0 ? (
+      {/* ===== TABLE CARD ===== */}
+      <div className="bg-white rounded-2xl shadow-md border p-6">
+        <h3 className="text-xl font-bold text-[#3E4A8A] mb-4">
+          Countries List
+        </h3>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead className="bg-blue-50 text-[#3E4A8A]">
               <tr>
-                <td colSpan="4" className="text-center p-4 text-gray-500">
-                  No Countries Found
-                </td>
+                <th className="p-3 border text-left">#</th>
+                <th className="p-3 border text-left">Country Name</th>
+                <th className="p-3 border text-center">Edit</th>
+                <th className="p-3 border text-center">Delete</th>
               </tr>
-            ) : (
-              countries.map((item, index) => (
-                <tr key={item._id} className="text-center">
-                  <td className="p-2 border">{index + 1}</td>
-                  <td className="p-2 border text-left pl-4">{item.name}</td>
+            </thead>
 
+            <tbody>
+              {countries.length === 0 ? (
+                <tr>
                   <td
-                    onClick={() => handleEdit(item)}
-                    className="p-2 border text-blue-600 cursor-pointer hover:underline"
+                    colSpan="4"
+                    className="text-center p-4 text-gray-500"
                   >
-                    Edit
-                  </td>
-
-                  <td
-                    onClick={() => handleDelete(item._id)}
-                    className="p-2 border text-red-600 cursor-pointer hover:underline"
-                  >
-                    Delete
+                    No countries found
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                countries.map((item, index) => (
+                  <tr
+                    key={item._id}
+                    className="border-b hover:bg-gray-50"
+                  >
+                    <td className="p-3">{index + 1}</td>
+                    <td className="p-3">{item.name}</td>
+
+                    <td
+                      onClick={() => handleEdit(item)}
+                      className="p-3 text-center text-[#3E4A8A]
+                                 cursor-pointer hover:underline"
+                    >
+                      Edit
+                    </td>
+
+                    <td
+                      onClick={() => handleDelete(item._id)}
+                      className="p-3 text-center text-red-600
+                                 cursor-pointer hover:underline"
+                    >
+                      Delete
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
+
     </div>
   );
 };

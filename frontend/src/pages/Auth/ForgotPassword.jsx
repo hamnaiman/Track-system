@@ -28,55 +28,77 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-          Forgot Password
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-[#F4F6F8] px-4">
 
-        <p className="text-sm text-gray-500 mb-6">
-          Enter your registered email and we’ll send you a reset link.
-        </p>
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg border p-8">
+
+        {/* LOGO + TITLE */}
+        <div className="text-center mb-6">
+          <img
+            src="/logo.jpg"
+            alt="IPMS Logo"
+            className="h-12 mx-auto mb-3"
+          />
+          <h2 className="text-2xl font-bold text-[#3E4A8A]">
+            Forgot Password
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Reset access to your IPMS account
+          </p>
+        </div>
 
         {success && (
-          <div className="mb-4 text-sm text-green-600 bg-green-50 p-3 rounded">
+          <div className="mb-4 text-sm text-green-700 bg-green-50 p-3 rounded">
             {success}
           </div>
         )}
 
         {error && (
-          <div className="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded">
+          <div className="mb-4 text-sm text-red-700 bg-red-50 p-3 rounded">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
+
+          {/* EMAIL */}
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Email Address
+            </label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300
+                         focus:outline-none focus:ring-2 focus:ring-blue-200"
             />
           </div>
 
+          {/* SUBMIT */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gray-700 text-white py-2 rounded-lg hover:bg-gray-800 transition disabled:opacity-60"
+            className="w-full bg-[#3E4A8A] hover:bg-[#2f3970]
+                       text-white py-3 rounded-lg font-semibold transition
+                       disabled:opacity-60"
           >
             {loading ? "Sending..." : "Send Reset Link"}
           </button>
         </form>
 
+        {/* BACK */}
         <div className="mt-6 text-center">
-          <Link to="/login" className="text-sm text-gray-600 hover:underline">
+          <Link
+            to="/login"
+            className="text-sm text-[#3E4A8A] hover:underline"
+          >
             Back to Login
           </Link>
         </div>
+
       </div>
     </div>
   );

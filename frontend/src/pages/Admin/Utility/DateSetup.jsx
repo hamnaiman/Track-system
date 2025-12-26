@@ -6,12 +6,12 @@ const DateSetup = () => {
   const [dateFormat, setDateFormat] = useState("MM/dd/yyyy");
   const [loading, setLoading] = useState(false);
 
-  // ✅ FETCH CURRENT DATE FORMAT
+  // FETCH CURRENT DATE FORMAT
   const fetchDateFormat = async () => {
     try {
       const res = await api.get("/settings/date-format");
       setDateFormat(res.data.dateFormat);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load date format");
     }
   };
@@ -20,14 +20,11 @@ const DateSetup = () => {
     fetchDateFormat();
   }, []);
 
-  // ✅ UPDATE DATE FORMAT
+  // UPDATE DATE FORMAT
   const handleUpdate = async () => {
     setLoading(true);
     try {
-      const res = await api.put("/settings/date-format", {
-        dateFormat,
-      });
-
+      const res = await api.put("/settings/date-format", { dateFormat });
       toast.success(res.data.message || "Date format updated successfully");
     } catch (err) {
       toast.error(err.response?.data?.message || "Update failed");
@@ -37,34 +34,54 @@ const DateSetup = () => {
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow max-w-xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-6 text-gray-800">
-        Date Format Setup
-      </h2>
+    <div className="min-h-[70vh] flex items-center justify-center px-4">
 
-      <div className="space-y-5">
-        <div>
-          <label className="block text-sm font-semibold mb-2">
-            Select Date Format
-          </label>
+      <div className="w-full max-w-md bg-white border rounded-2xl shadow-lg p-8">
 
-          <select
-            value={dateFormat}
-            onChange={(e) => setDateFormat(e.target.value)}
-            className="w-full p-3 border rounded"
-          >
-            <option value="MM/dd/yyyy">MM/dd/yyyy</option>
-            <option value="dd/MM/yyyy">dd/MM/yyyy</option>
-          </select>
+        {/* HEADER */}
+        <div className="mb-6 text-center">
+          <h2 className="text-2xl font-bold text-[#3E4A8A]">
+            Date Format Setup
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Choose how dates are displayed across the system
+          </p>
         </div>
 
-        <button
-          onClick={handleUpdate}
-          disabled={loading}
-          className="bg-gray-800 text-white px-6 py-2 rounded w-full"
-        >
-          {loading ? "Updating..." : "Update"}
-        </button>
+        {/* FORM */}
+        <div className="space-y-6">
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-600 mb-2">
+              Select Date Format
+            </label>
+
+            <select
+              value={dateFormat}
+              onChange={(e) => setDateFormat(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border bg-gray-100
+                         focus:outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              <option value="MM/dd/yyyy">MM / DD / YYYY (US Format)</option>
+              <option value="dd/MM/yyyy">DD / MM / YYYY (International)</option>
+            </select>
+
+            <p className="text-xs text-gray-500 mt-2">
+              This format will be applied to all date fields in IPMS.
+            </p>
+          </div>
+
+          <button
+            onClick={handleUpdate}
+            disabled={loading}
+            className="w-full bg-[#3E4A8A] hover:bg-[#2f3970]
+                       text-white py-3 rounded-lg font-semibold transition
+                       disabled:opacity-60"
+          >
+            {loading ? "Updating..." : "Update Date Format"}
+          </button>
+
+        </div>
       </div>
     </div>
   );

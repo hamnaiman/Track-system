@@ -3,15 +3,11 @@ import api from "../../../api/api";
 
 const BasicSearch = () => {
   const [filters, setFilters] = useState({
-    searchBy: "DateOfFiling",
+    trademark: "",
+    applicationNo: "",
+    status: "",
     startDate: "",
     endDate: "",
-    trademark: "",
-    applicant: "",
-    applicationNo: "",
-    classFrom: "",
-    classTo: "",
-    status: "",
     reportType: "summary"
   });
 
@@ -30,8 +26,8 @@ const BasicSearch = () => {
 
     try {
       const res = await api.post("/reports/basic-search", filters);
-      setResults(res.data.data || []);
-    } catch (err) {
+      setResults(res.data?.data || []);
+    } catch {
       setError("Failed to load report data");
     } finally {
       setLoading(false);
@@ -39,156 +35,163 @@ const BasicSearch = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col gap-6">
 
-      {/* HEADER */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
+      {/* ===== HEADER ===== */}
+      <div>
+        <h2 className="text-2xl font-semibold text-[#3E4A8A]">
           Basic Search Report
         </h2>
         <p className="text-sm text-gray-500">
-          Search trademark applications using different filters
+          Search trademark applications using multiple filters
         </p>
       </div>
 
-      {/* FILTER BOX */}
-      <div className="bg-white border rounded p-4 mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* ===== FILTER CARD ===== */}
+      <div className="bg-white border rounded-lg p-5 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-        <div>
-          <label className="text-sm font-medium">Trademark</label>
-          <input
-            type="text"
+          <Field
+            label="Trademark"
             name="trademark"
             value={filters.trademark}
             onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
           />
-        </div>
 
-        <div>
-          <label className="text-sm font-medium">Application No</label>
-          <input
-            type="text"
+          <Field
+            label="Application No"
             name="applicationNo"
             value={filters.applicationNo}
             onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
           />
-        </div>
 
-        <div>
-          <label className="text-sm font-medium">Status</label>
-          <input
-            type="text"
+          <Field
+            label="Status"
             name="status"
             value={filters.status}
             onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
           />
-        </div>
 
-        <div>
-          <label className="text-sm font-medium">From Date</label>
-          <input
-            type="date"
+          <Field
+            label="From Date"
             name="startDate"
+            type="date"
             value={filters.startDate}
             onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
           />
-        </div>
 
-        <div>
-          <label className="text-sm font-medium">To Date</label>
-          <input
-            type="date"
+          <Field
+            label="To Date"
             name="endDate"
+            type="date"
             value={filters.endDate}
             onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
           />
+
+          <div>
+            <label className="text-sm font-medium text-gray-700">
+              Report Type
+            </label>
+            <select
+              name="reportType"
+              value={filters.reportType}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2 mt-1 focus:ring-1 focus:ring-[#3E4A8A]"
+            >
+              <option value="summary">Summary</option>
+              <option value="details">Details</option>
+            </select>
+          </div>
+
         </div>
 
-        <div>
-          <label className="text-sm font-medium">Report Type</label>
-          <select
-            name="reportType"
-            value={filters.reportType}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
+        <div className="mt-5">
+          <button
+            onClick={handleSearch}
+            className="bg-[#3E4A8A] text-white px-6 py-2 rounded hover:bg-[#2f3970] transition"
           >
-            <option value="summary">Summary</option>
-            <option value="details">Details</option>
-          </select>
+            Generate Report
+          </button>
         </div>
-
       </div>
 
-      {/* SEARCH BUTTON */}
-      <div className="mb-6">
-        <button
-          onClick={handleSearch}
-          className="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-800 transition"
-        >
-          Generate Report
-        </button>
-      </div>
-
-      {/* LOADING */}
+      {/* ===== LOADING ===== */}
       {loading && (
-        <div className="text-gray-500">Loading report...</div>
+        <div className="text-gray-500 text-sm">
+          Loading report data...
+        </div>
       )}
 
-      {/* ERROR */}
+      {/* ===== ERROR ===== */}
       {error && (
-        <div className="bg-red-50 text-red-600 border border-red-200 p-3 rounded">
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded text-sm">
           {error}
         </div>
       )}
 
-      {/* RESULT TABLE */}
+      {/* ===== RESULTS TABLE ===== */}
       {!loading && results.length > 0 && (
-        <div className="bg-white border rounded shadow-sm overflow-auto">
+        <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
 
-          <table className="w-full text-sm border-collapse">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border px-3 py-2">Application No</th>
-                <th className="border px-3 py-2">Trademark</th>
-                <th className="border px-3 py-2">Applicant</th>
-                <th className="border px-3 py-2">Date Of Filing</th>
-                <th className="border px-3 py-2">Status</th>
-              </tr>
-            </thead>
+          <div className="px-4 py-3 border-b bg-gray-50 font-medium text-gray-700">
+            Search Results ({results.length})
+          </div>
 
-            <tbody>
-              {results.map((app) => (
-                <tr key={app._id} className="hover:bg-gray-50">
-                  <td className="border px-3 py-2">
-                    {app.applicationNumber}
-                  </td>
-                  <td className="border px-3 py-2">
-                    {app.trademark}
-                  </td>
-                  <td className="border px-3 py-2">
-                    {app.client?.customerName || "-"}
-                  </td>
-                  <td className="border px-3 py-2">
-                    {new Date(app.dateOfFiling).toLocaleDateString()}
-                  </td>
-                  <td className="border px-3 py-2">
-                    {app.status?.description || "-"}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm border-collapse">
+              <thead className="bg-gray-100 text-gray-700">
+                <tr>
+                  <th className="border px-4 py-2 text-left">
+                    Application No
+                  </th>
+                  <th className="border px-4 py-2 text-left">
+                    Trademark
+                  </th>
+                  <th className="border px-4 py-2 text-left">
+                    Applicant
+                  </th>
+                  <th className="border px-4 py-2 text-left">
+                    Filing Date
+                  </th>
+                  <th className="border px-4 py-2 text-left">
+                    Status
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {results.map((app) => (
+                  <tr
+                    key={app._id}
+                    className="hover:bg-blue-50 transition"
+                  >
+                    <td className="border px-4 py-2">
+                      {app.applicationNumber}
+                    </td>
+                    <td className="border px-4 py-2">
+                      {app.trademark}
+                    </td>
+                    <td className="border px-4 py-2">
+                      {app.client?.customerName || "-"}
+                    </td>
+                    <td className="border px-4 py-2">
+                      {new Date(app.dateOfFiling).toLocaleDateString()}
+                    </td>
+                    <td className="border px-4 py-2">
+                      {app.status?.description || "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
         </div>
       )}
 
+      {/* ===== EMPTY ===== */}
       {!loading && results.length === 0 && (
-        <div className="text-gray-500 mt-6">
+        <div className="text-gray-500 text-sm">
           No records found
         </div>
       )}
@@ -196,5 +199,21 @@ const BasicSearch = () => {
     </div>
   );
 };
+
+/* ===== REUSABLE INPUT ===== */
+const Field = ({ label, name, value, onChange, type = "text" }) => (
+  <div>
+    <label className="text-sm font-medium text-gray-700">
+      {label}
+    </label>
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      className="w-full border rounded px-3 py-2 mt-1 focus:ring-1 focus:ring-[#3E4A8A]"
+    />
+  </div>
+);
 
 export default BasicSearch;

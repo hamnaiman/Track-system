@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import api from "../../../api/api";
-
 import { toast } from "react-toastify";
 
 const FileStatusSetup = () => {
@@ -9,12 +8,12 @@ const FileStatusSetup = () => {
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ FETCH ALL FILE STATUSES
+  // FETCH ALL FILE STATUSES
   const fetchFileStatuses = async () => {
     try {
       const res = await api.get("/file-statuses");
       setFileStatuses(res.data || []);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load file statuses");
     }
   };
@@ -23,7 +22,7 @@ const FileStatusSetup = () => {
     fetchFileStatuses();
   }, []);
 
-  // ✅ CREATE / UPDATE
+  // CREATE / UPDATE
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -53,13 +52,13 @@ const FileStatusSetup = () => {
     }
   };
 
-  // ✅ EDIT
+  // EDIT
   const handleEdit = (status) => {
     setDescription(status.description);
     setEditId(status._id);
   };
 
-  // ✅ ✅ ✅ PROFESSIONAL DELETE WITH CONFIRM TOAST
+  // DELETE WITH CONFIRM TOAST
   const handleDelete = (id) => {
     toast.info(
       ({ closeToast }) => (
@@ -75,113 +74,156 @@ const FileStatusSetup = () => {
                   await api.delete(`/file-statuses/${id}`);
                   toast.success("File Status Deleted Successfully");
                   fetchFileStatuses();
-                } catch (err) {
+                } catch {
                   toast.error("Delete failed");
                 }
                 closeToast();
               }}
-              className="bg-red-600 text-white px-3 py-1 rounded"
+              className="bg-red-600 text-white px-4 py-1 rounded"
             >
               Yes, Delete
             </button>
 
             <button
               onClick={closeToast}
-              className="bg-gray-300 px-3 py-1 rounded"
+              className="bg-gray-300 px-4 py-1 rounded"
             >
               Cancel
             </button>
           </div>
         </div>
       ),
-      {
-        autoClose: false,
-        closeOnClick: false,
-      }
+      { autoClose: false, closeOnClick: false }
     );
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow-lg max-w-5xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-4">File Status Setup</h2>
+    <div className="max-w-5xl mx-auto space-y-8">
 
-      {/* ✅ FORM */}
-      <form onSubmit={handleSubmit} className="flex gap-4 mb-6">
-        <input
-          type="text"
-          placeholder="Enter Status Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="p-3 border rounded w-96"
-        />
+      {/* HEADER */}
+      <div>
+        <h2 className="text-2xl font-bold text-[#3E4A8A]">
+          File Status Setup
+        </h2>
+        <p className="text-sm text-gray-500">
+          Manage application file status workflow
+        </p>
+      </div>
 
-        <button
-          disabled={loading}
-          className="bg-gray-800 text-white px-6 py-2 rounded disabled:opacity-60"
+      {/* FORM CARD */}
+      <div className="bg-white rounded-2xl shadow-md border p-6">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col sm:flex-row gap-4"
         >
-          {loading ? "Processing..." : editId ? "Update" : "Save"}
-        </button>
+          <input
+            type="text"
+            placeholder="Enter Status Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="flex-1 px-4 py-3 rounded-lg bg-gray-100 border
+                       focus:outline-none focus:ring-2 focus:ring-blue-200"
+          />
 
-        {editId && (
-          <button
-            type="button"
-            onClick={() => {
-              setEditId(null);
-              setDescription("");
-            }}
-            className="bg-gray-400 text-white px-6 py-2 rounded"
-          >
-            Cancel
-          </button>
-        )}
-      </form>
+          <div className="flex gap-3">
+            <button
+              disabled={loading}
+              className="bg-[#3E4A8A] hover:bg-[#2f3970]
+                         text-white px-6 py-3 rounded-lg font-semibold
+                         transition disabled:opacity-60"
+            >
+              {loading ? "Processing..." : editId ? "Update" : "Save"}
+            </button>
 
-      {/* ✅ TABLE */}
-      <table className="w-full border text-sm">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="p-2 border w-16">S.No</th>
-            <th className="p-2 border">Status Description</th>
-            <th className="p-2 border w-20">Edit</th>
-            <th className="p-2 border w-24">Delete</th>
-          </tr>
-        </thead>
+            {editId && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditId(null);
+                  setDescription("");
+                }}
+                className="bg-gray-400 text-white px-6 py-3 rounded-lg"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
 
-        <tbody>
-          {fileStatuses.length === 0 ? (
-            <tr>
-              <td colSpan="4" className="text-center p-4 text-gray-500">
-                No File Status Found
-              </td>
-            </tr>
-          ) : (
-            fileStatuses.map((item, index) => (
-              <tr key={item._id} className="text-center">
-                <td className="p-2 border">{index + 1}</td>
-                <td className="p-2 border text-left pl-4">
-                  {item.description}
-                </td>
+      {/* TABLE */}
+      <div className="bg-white rounded-2xl shadow-md border p-6">
+        <h3 className="text-xl font-bold text-[#3E4A8A] mb-4">
+          File Status List
+        </h3>
 
-                <td
-                  onClick={() => handleEdit(item)}
-                  className="p-2 border text-blue-600 cursor-pointer hover:underline"
-                >
-                  Edit
-                </td>
-
-                <td
-                  onClick={() => handleDelete(item._id)}
-                  className="p-2 border text-red-600 cursor-pointer hover:underline"
-                >
-                  Delete
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead className="bg-blue-50 text-[#3E4A8A]">
+              <tr>
+                <Th className="w-16">S.No</Th>
+                <Th>Status Description</Th>
+                <Th className="w-20">Edit</Th>
+                <Th className="w-24">Delete</Th>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            </thead>
+
+            <tbody>
+              {fileStatuses.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="4"
+                    className="text-center p-6 text-gray-500"
+                  >
+                    No File Status Found
+                  </td>
+                </tr>
+              ) : (
+                fileStatuses.map((item, index) => (
+                  <tr
+                    key={item._id}
+                    className="border-b hover:bg-gray-50"
+                  >
+                    <Td>{index + 1}</Td>
+                    <Td>{item.description}</Td>
+
+                    <Td
+                      onClick={() => handleEdit(item)}
+                      className="text-[#3E4A8A] cursor-pointer font-medium"
+                    >
+                      Edit
+                    </Td>
+
+                    <Td
+                      onClick={() => handleDelete(item._id)}
+                      className="text-red-600 cursor-pointer font-medium"
+                    >
+                      Delete
+                    </Td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   );
 };
 
 export default FileStatusSetup;
+
+/* ===== UI HELPERS ===== */
+
+const Th = ({ children, className = "" }) => (
+  <th className={`p-3 border text-left font-semibold ${className}`}>
+    {children}
+  </th>
+);
+
+const Td = ({ children, className = "" }) => (
+  <td className={`p-3 border ${className}`}>
+    {children}
+  </td>
+);

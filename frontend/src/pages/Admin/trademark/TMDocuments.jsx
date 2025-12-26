@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import api from "../../../api/api"
+import React, { useState } from "react";
+import api from "../../../api/api";
 import { toast } from "react-toastify";
 
 export default function TMDocuments() {
@@ -10,9 +10,13 @@ export default function TMDocuments() {
   const [showToClient, setShowToClient] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ---------------- FETCH GRID ----------------
+  /* ================= FETCH DOCUMENTS ================= */
   const fetchDocuments = async () => {
-    if (!applicationNumber) return;
+    if (!applicationNumber) {
+      toast.warning("Enter Application Number");
+      return;
+    }
+
     try {
       const res = await api.get(
         `/documents?applicationNumber=${applicationNumber}`
@@ -23,7 +27,7 @@ export default function TMDocuments() {
     }
   };
 
-  // ---------------- UPLOAD (UPDATE BUTTON) ----------------
+  /* ================= UPLOAD ================= */
   const handleUpload = async () => {
     if (!applicationNumber || !file || !remarks) {
       return toast.error("All fields are required");
@@ -41,7 +45,7 @@ export default function TMDocuments() {
         headers: { "Content-Type": "multipart/form-data" }
       });
 
-      toast.success("Document added to grid");
+      toast.success("Document uploaded successfully");
       setFile(null);
       setRemarks("");
       setShowToClient(false);
@@ -53,7 +57,7 @@ export default function TMDocuments() {
     }
   };
 
-  // ---------------- DOWNLOAD ----------------
+  /* ================= DOWNLOAD ================= */
   const handleDownload = async (doc) => {
     const res = await api.get(`/documents/download/${doc._id}`, {
       responseType: "blob"
@@ -66,7 +70,7 @@ export default function TMDocuments() {
     a.click();
   };
 
-  // ---------------- DELETE ----------------
+  /* ================= DELETE ================= */
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this document?")) return;
 
@@ -75,47 +79,57 @@ export default function TMDocuments() {
     fetchDocuments();
   };
 
-  // ---------------- UI ----------------
   return (
-    <div className="p-6 bg-white text-gray-800">
-      <h2 className="text-lg font-semibold mb-4 border-b pb-2">
-        TM Documents
-      </h2>
+    <div className="max-w-6xl mx-auto space-y-8">
 
-      {/* SEARCH */}
-      <div className="mb-4 flex gap-3">
+      {/* ================= HEADER ================= */}
+      <div>
+        <h2 className="text-2xl font-bold text-[#3E4A8A]">
+          TM Documents
+        </h2>
+        <p className="text-sm text-gray-500">
+          Upload and manage trademark documents
+        </p>
+      </div>
+
+      {/* ================= SEARCH ================= */}
+      <div className="bg-white p-6 rounded-2xl shadow border flex flex-col md:flex-row gap-4">
         <input
-          className="border px-3 py-2 w-64 bg-gray-50"
-          placeholder="Application Number"
+          className="px-4 py-3 rounded-lg bg-gray-100 border
+                     focus:outline-none focus:ring-2 focus:ring-blue-200 w-full md:w-80"
+          placeholder="Enter Application Number"
           value={applicationNumber}
           onChange={(e) => setApplicationNumber(e.target.value)}
         />
+
         <button
           onClick={fetchDocuments}
-          className="px-4 py-2 bg-gray-700 text-white"
+          className="bg-[#3E4A8A] hover:bg-[#2f3970]
+                     text-white px-8 py-3 rounded-lg font-semibold"
         >
-          View
+          View Documents
         </button>
       </div>
 
-      {/* UPLOAD FORM */}
-      <div className="border p-4 mb-6 bg-gray-50 space-y-3">
-        <div>
-          <label className="block text-sm mb-1">
-            Image / Document (Max 2MB)
-          </label>
-          <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-        </div>
+      {/* ================= UPLOAD ================= */}
+      <div className="bg-white p-6 rounded-2xl shadow border space-y-4">
+        <h3 className="font-semibold text-[#3E4A8A]">
+          Upload New Document
+        </h3>
 
-        <div>
-          <label className="block text-sm mb-1">Remarks</label>
-          <input
-            className="border px-3 py-2 w-full"
-            placeholder="Very clear description of document"
-            value={remarks}
-            onChange={(e) => setRemarks(e.target.value)}
-          />
-        </div>
+        <input
+          type="file"
+          onChange={(e) => setFile(e.target.files[0])}
+          className="w-full"
+        />
+
+        <input
+          className="px-4 py-3 rounded-lg bg-gray-100 border w-full
+                     focus:outline-none focus:ring-2 focus:ring-blue-200"
+          placeholder="Document remarks / description"
+          value={remarks}
+          onChange={(e) => setRemarks(e.target.value)}
+        />
 
         <label className="flex items-center gap-2 text-sm">
           <input
@@ -129,60 +143,81 @@ export default function TMDocuments() {
         <button
           onClick={handleUpload}
           disabled={loading}
-          className="px-5 py-2 bg-gray-800 text-white"
+          className="bg-[#3E4A8A] hover:bg-[#2f3970]
+                     text-white px-8 py-3 rounded-lg font-semibold"
         >
-          {loading ? "Uploading..." : "Update"}
+          {loading ? "Uploading..." : "Upload Document"}
         </button>
       </div>
 
-      {/* GRID */}
-      <table className="w-full border text-sm">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border px-2 py-2">S.No</th>
-            <th className="border px-2 py-2">Document</th>
-            <th className="border px-2 py-2">Show To Client</th>
-            <th className="border px-2 py-2">Remarks</th>
-            <th className="border px-2 py-2">Action</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {documents.length === 0 && (
+      {/* ================= TABLE ================= */}
+      <div className="bg-white rounded-2xl shadow border overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-100">
             <tr>
-              <td colSpan="5" className="text-center py-4 text-gray-500">
-                No documents found
-              </td>
+              <Th>#</Th>
+              <Th>Document</Th>
+              <Th>Show To Client</Th>
+              <Th>Remarks</Th>
+              <Th className="text-center">Action</Th>
             </tr>
-          )}
+          </thead>
 
-          {documents.map((d, i) => (
-            <tr key={d._id} className="border-t">
-              <td className="border px-2 py-2">{i + 1}</td>
-              <td className="border px-2 py-2">
-                <button
-                  className="text-blue-600 underline"
-                  onClick={() => handleDownload(d)}
+          <tbody>
+            {documents.length === 0 ? (
+              <tr>
+                <td
+                  colSpan="5"
+                  className="text-center p-6 text-gray-500"
                 >
-                  Download
-                </button>
-              </td>
-              <td className="border px-2 py-2">
-                {d.showToClient ? "True" : "False"}
-              </td>
-              <td className="border px-2 py-2">{d.remarks}</td>
-              <td className="border px-2 py-2">
-                <button
-                  className="text-red-600"
-                  onClick={() => handleDelete(d._id)}
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                  No documents found
+                </td>
+              </tr>
+            ) : (
+              documents.map((d, i) => (
+                <tr key={d._id} className="hover:bg-gray-50">
+                  <Td>{i + 1}</Td>
+
+                  <Td>
+                    <button
+                      onClick={() => handleDownload(d)}
+                      className="text-[#3E4A8A] font-semibold underline"
+                    >
+                      Download
+                    </button>
+                  </Td>
+
+                  <Td>{d.showToClient ? "Yes" : "No"}</Td>
+                  <Td>{d.remarks}</Td>
+
+                  <Td className="text-center">
+                    <button
+                      onClick={() => handleDelete(d._id)}
+                      className="text-red-600 font-semibold"
+                    >
+                      Delete
+                    </button>
+                  </Td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
     </div>
   );
 }
+
+/* ================= HELPERS ================= */
+const Th = ({ children, className = "" }) => (
+  <th className={`p-3 border text-left font-semibold ${className}`}>
+    {children}
+  </th>
+);
+
+const Td = ({ children, className = "" }) => (
+  <td className={`p-3 border ${className}`}>
+    {children}
+  </td>
+);

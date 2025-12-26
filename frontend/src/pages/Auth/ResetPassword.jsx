@@ -1,103 +1,102 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/api";
+import { Link } from "react-router-dom";
 
-const ResetPassword = () => {
-  const { token } = useParams(); // URL se token
-  const navigate = useNavigate();
-
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+export default function ForgotPassword() {
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setLoading(true);
     setSuccess("");
-
-    if (password !== confirmPassword) {
-      return setError("Passwords do not match");
-    }
+    setError("");
 
     try {
-      setLoading(true);
-
-      const res = await api.post(`/auth/reset-password/${token}`, {
-        password,
-      });
-
-      setSuccess(res.data.message || "Password reset successful");
-
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
-
+      const res = await api.post("/auth/forgot-password", { email });
+      setSuccess(res.data.message || "Reset link sent to your email.");
+      setEmail("");
     } catch (err) {
-      setError(err.response?.data?.message || "Reset failed");
+      setError(
+        err.response?.data?.message || "Something went wrong. Try again."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gray-100 px-4">
-      <div className="w-full max-w-md bg-white shadow-lg rounded-xl px-8 py-10 border border-gray-200">
-        <h2 className="text-3xl font-semibold text-center text-gray-800 mb-4">
-          Reset Password
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4">
 
-        <p className="text-sm text-gray-500 text-center mb-6">
-          Enter your new password below.
-        </p>
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border">
 
-        {success && (
-          <div className="mb-4 text-green-600 bg-green-50 p-3 rounded text-sm">
-            {success}
+        {/* HEADER STRIP */}
+        <div className="bg-gradient-to-r from-[#3E4A8A] to-[#2f3970] px-8 py-6 text-center">
+          <img src="/logo.png" alt="IPMS Logo" className="h-10 mx-auto mb-2" />
+          <h2 className="text-xl font-semibold text-white">
+            Forgot Password
+          </h2>
+          <p className="text-xs text-white/80 mt-1">
+            Intellectual Property Management System
+          </p>
+        </div>
+
+        {/* BODY */}
+        <div className="p-8">
+
+          {success && (
+            <div className="mb-4 text-sm text-green-800 bg-green-50 border border-green-200 p-3 rounded">
+              {success}
+            </div>
+          )}
+
+          {error && (
+            <div className="mb-4 text-sm text-red-800 bg-red-50 border border-red-200 p-3 rounded">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+
+            {/* EMAIL */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email Address
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300
+                           focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+
+            {/* SUBMIT */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#3E4A8A] hover:bg-[#2f3970]
+                         text-white py-3 rounded-lg font-semibold transition
+                         disabled:opacity-60"
+            >
+              {loading ? "Sending..." : "Send Reset Link"}
+            </button>
+          </form>
+
+          {/* BACK */}
+          <div className="mt-6 text-center">
+            <Link to="/login" className="text-sm text-[#3E4A8A] hover:underline">
+              Back to Login
+            </Link>
           </div>
-        )}
 
-        {error && (
-          <div className="mb-4 text-red-600 bg-red-50 p-3 rounded text-sm">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <label className="text-gray-700 text-sm mb-1 block">
-            New Password
-          </label>
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 rounded-lg bg-gray-100 text-gray-800 border border-gray-300 focus:ring-2 focus:ring-gray-400 mb-4"
-          />
-
-          <label className="text-gray-700 text-sm mb-1 block">
-            Confirm Password
-          </label>
-          <input
-            type="password"
-            required
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full p-3 rounded-lg bg-gray-100 text-gray-800 border border-gray-300 focus:ring-2 focus:ring-gray-400 mb-6"
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg font-medium transition-all disabled:opacity-60"
-          >
-            {loading ? "Resetting..." : "Reset Password"}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );
-};
-
-export default ResetPassword;
+}

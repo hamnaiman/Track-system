@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import api from "../../../api/api";
-
 import { toast } from "react-toastify";
 
 const TMFormsSetup = () => {
@@ -14,7 +13,7 @@ const TMFormsSetup = () => {
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Fetch Forms
+  // FETCH TM FORMS
   const fetchForms = async () => {
     try {
       const res = await api.get("/tm-forms");
@@ -28,12 +27,12 @@ const TMFormsSetup = () => {
     fetchForms();
   }, []);
 
-  // ✅ Input Handler
+  // INPUT HANDLER
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ✅ Create / Update
+  // CREATE / UPDATE
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -63,7 +62,7 @@ const TMFormsSetup = () => {
     }
   };
 
-  // ✅ Edit
+  // EDIT
   const handleEdit = (item) => {
     setForm({
       formNumber: item.formNumber,
@@ -73,7 +72,7 @@ const TMFormsSetup = () => {
     setEditId(item._id);
   };
 
-  // ✅ Delete with Toast Confirm
+  // DELETE WITH CONFIRM
   const handleDelete = (id) => {
     toast.info(
       ({ closeToast }) => (
@@ -81,7 +80,8 @@ const TMFormsSetup = () => {
           <p className="font-semibold text-sm">
             Are you sure you want to delete this TM Form?
           </p>
-          <div className="flex gap-3 justify-end">
+
+          <div className="flex justify-end gap-3">
             <button
               onClick={async () => {
                 try {
@@ -93,14 +93,14 @@ const TMFormsSetup = () => {
                 }
                 closeToast();
               }}
-              className="bg-red-600 text-white px-3 py-1 rounded"
+              className="bg-red-600 text-white px-4 py-1 rounded"
             >
               Yes, Delete
             </button>
 
             <button
               onClick={closeToast}
-              className="bg-gray-300 px-3 py-1 rounded"
+              className="bg-gray-300 px-4 py-1 rounded"
             >
               Cancel
             </button>
@@ -112,113 +112,152 @@ const TMFormsSetup = () => {
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow-lg max-w-5xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-6">TM Forms Setup</h2>
+    <div className="max-w-5xl mx-auto space-y-8">
 
-      {/* ✅ FORM */}
-      <form onSubmit={handleSubmit} className="grid grid-cols-3 gap-4 mb-6">
+      {/* HEADER */}
+      <div>
+        <h2 className="text-2xl font-bold text-[#3E4A8A]">
+          TM Forms Setup
+        </h2>
+        <p className="text-sm text-gray-500">
+          Manage trademark forms and their priorities
+        </p>
+      </div>
 
-        <input
-          type="text"
-          name="formNumber"
-          value={form.formNumber}
-          onChange={handleChange}
-          placeholder="Form Number"
-          className="p-3 border rounded"
-          required
-        />
+      {/* FORM CARD */}
+      <div className="bg-white rounded-2xl shadow-md border p-6">
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        >
+          <input
+            type="text"
+            name="formNumber"
+            value={form.formNumber}
+            onChange={handleChange}
+            placeholder="Form Number"
+            className="px-4 py-3 rounded-lg bg-gray-100 border
+                       focus:outline-none focus:ring-2 focus:ring-blue-200"
+          />
 
-        <input
-          type="text"
-          name="description"
-          value={form.description}
-          onChange={handleChange}
-          placeholder="Description"
-          className="p-3 border rounded"
-          required
-        />
+          <input
+            type="text"
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            placeholder="Description"
+            className="px-4 py-3 rounded-lg bg-gray-100 border
+                       focus:outline-none focus:ring-2 focus:ring-blue-200"
+          />
 
-        <input
-          type="number"
-          name="priority"
-          value={form.priority}
-          onChange={handleChange}
-          placeholder="Priority"
-          min="1"
-          className="p-3 border rounded"
-          required
-        />
+          <input
+            type="number"
+            name="priority"
+            value={form.priority}
+            onChange={handleChange}
+            placeholder="Priority"
+            min="1"
+            className="px-4 py-3 rounded-lg bg-gray-100 border
+                       focus:outline-none focus:ring-2 focus:ring-blue-200"
+          />
 
-        <div className="col-span-3 flex gap-4">
-          <button
-            disabled={loading}
-            className="bg-gray-800 text-white px-6 py-2 rounded disabled:opacity-60"
-          >
-            {loading ? "Processing..." : editId ? "Update" : "Save"}
-          </button>
-
-          {editId && (
+          <div className="sm:col-span-2 lg:col-span-3 flex gap-3 mt-2">
             <button
-              type="button"
-              onClick={() => {
-                setEditId(null);
-                setForm({ formNumber: "", description: "", priority: "" });
-              }}
-              className="bg-gray-400 text-white px-6 py-2 rounded"
+              disabled={loading}
+              className="bg-[#3E4A8A] hover:bg-[#2f3970]
+                         text-white px-6 py-3 rounded-lg font-semibold
+                         transition disabled:opacity-60"
             >
-              Cancel
+              {loading ? "Processing..." : editId ? "Update" : "Save"}
             </button>
-          )}
-        </div>
-      </form>
 
-      {/* ✅ TABLE */}
-      <table className="w-full border-collapse text-sm">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="border p-2">#</th>
-            <th className="border p-2">Form No</th>
-            <th className="border p-2">Description</th>
-            <th className="border p-2">Priority</th>
-            <th className="border p-2">Edit</th>
-            <th className="border p-2">Delete</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tmForms.length === 0 ? (
-            <tr>
-              <td colSpan="6" className="text-center p-4 text-gray-500">
-                No Forms Found
-              </td>
-            </tr>
-          ) : (
-            tmForms.map((item, index) => (
-              <tr key={item._id}>
-                <td className="border p-2">{index + 1}</td>
-                <td className="border p-2">{item.formNumber}</td>
-                <td className="border p-2">{item.description}</td>
-                <td className="border p-2 text-center">{item.priority}</td>
+            {editId && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditId(null);
+                  setForm({ formNumber: "", description: "", priority: "" });
+                }}
+                className="bg-gray-400 text-white px-6 py-3 rounded-lg"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
 
-                <td
-                  onClick={() => handleEdit(item)}
-                  className="border p-2 text-blue-600 cursor-pointer"
-                >
-                  Edit
-                </td>
+      {/* TABLE CARD */}
+      <div className="bg-white rounded-2xl shadow-md border p-6">
+        <h3 className="text-xl font-bold text-[#3E4A8A] mb-4">
+          TM Forms List
+        </h3>
 
-                <td
-                  onClick={() => handleDelete(item._id)}
-                  className="border p-2 text-red-600 cursor-pointer"
-                >
-                  Delete
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead className="bg-blue-50 text-[#3E4A8A]">
+              <tr>
+                <Th>#</Th>
+                <Th>Form No</Th>
+                <Th>Description</Th>
+                <Th className="text-center">Priority</Th>
+                <Th>Edit</Th>
+                <Th>Delete</Th>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            </thead>
+
+            <tbody>
+              {tmForms.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="text-center p-6 text-gray-500">
+                    No Forms Found
+                  </td>
+                </tr>
+              ) : (
+                tmForms.map((item, index) => (
+                  <tr key={item._id} className="border-b hover:bg-gray-50">
+                    <Td>{index + 1}</Td>
+                    <Td>{item.formNumber}</Td>
+                    <Td>{item.description}</Td>
+                    <Td className="text-center">{item.priority}</Td>
+
+                    <Td
+                      onClick={() => handleEdit(item)}
+                      className="text-[#3E4A8A] cursor-pointer font-medium"
+                    >
+                      Edit
+                    </Td>
+
+                    <Td
+                      onClick={() => handleDelete(item._id)}
+                      className="text-red-600 cursor-pointer font-medium"
+                    >
+                      Delete
+                    </Td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   );
 };
 
 export default TMFormsSetup;
+
+/* ===== UI HELPERS ===== */
+
+const Th = ({ children, className = "" }) => (
+  <th className={`p-3 border text-left font-semibold ${className}`}>
+    {children}
+  </th>
+);
+
+const Td = ({ children, className = "" }) => (
+  <td className={`p-3 border ${className}`}>
+    {children}
+  </td>
+);

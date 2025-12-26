@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import api from "../../../api/api";
-
 import { toast } from "react-toastify";
 
 const Hearing = () => {
   const [applications, setApplications] = useState([]);
   const [selectedApp, setSelectedApp] = useState("");
-
   const [applicationInfo, setApplicationInfo] = useState(null);
   const [hearings, setHearings] = useState([]);
 
@@ -14,19 +12,19 @@ const Hearing = () => {
     hearingDate: "",
     before: "",
     commentsArguments: "",
-    advocateAppeared: ""
+    advocateAppeared: "",
   });
 
   const [editId, setEditId] = useState(null);
 
-  // ✅ LOAD APPLICATIONS
+  /* ================= LOAD APPLICATIONS ================= */
   useEffect(() => {
-    api.get("/applications").then(res => {
+    api.get("/applications").then((res) => {
       setApplications(res.data.data || []);
     });
   }, []);
 
-  // ✅ LOAD HEARING BY APPLICATION
+  /* ================= LOAD HEARINGS ================= */
   const loadHearings = async (appId) => {
     try {
       const res = await api.get(`/hearings/${appId}`);
@@ -38,12 +36,10 @@ const Hearing = () => {
     }
   };
 
-  // ✅ HANDLE INPUT
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
-  // ✅ SAVE / UPDATE
+  /* ================= SAVE / UPDATE ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -55,182 +51,190 @@ const Hearing = () => {
     try {
       if (editId) {
         await api.put(`/hearings/entry/${editId}`, form);
-        toast.success("✅ Hearing Updated");
+        toast.success("Hearing updated");
       } else {
         await api.post("/hearings", {
           application: selectedApp,
           trademark: applicationInfo?.trademark,
           goods: applicationInfo?.goods,
-          ...form
+          ...form,
         });
-        toast.success("✅ Hearing Added");
+        toast.success("Hearing added");
       }
 
       setForm({
         hearingDate: "",
         before: "",
         commentsArguments: "",
-        advocateAppeared: ""
+        advocateAppeared: "",
       });
 
       setEditId(null);
       loadHearings(selectedApp);
-
     } catch (err) {
       toast.error(err.response?.data?.message || "Operation failed");
     }
   };
 
-  // ✅ EDIT ROW
+  /* ================= EDIT ================= */
   const handleEdit = (row) => {
     setForm({
       hearingDate: row.hearingDate.slice(0, 10),
       before: row.before,
       commentsArguments: row.commentsArguments,
-      advocateAppeared: row.advocateAppeared
+      advocateAppeared: row.advocateAppeared,
     });
     setEditId(row._id);
   };
 
-  // ✅ DELETE ROW
+  /* ================= DELETE ================= */
   const handleDelete = (id) => {
-    toast.info(({ closeToast }) => (
-      <div>
-        <p className="font-semibold mb-2">Delete this hearing?</p>
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={async () => {
-              await api.delete(`/hearings/entry/${id}`);
-              toast.success("Deleted Successfully");
-              loadHearings(selectedApp);
-              closeToast();
-            }}
-            className="bg-red-600 text-white px-4 py-1 rounded"
-          >
-            Yes
-          </button>
-          <button onClick={closeToast} className="bg-gray-300 px-4 py-1 rounded">
-            Cancel
-          </button>
+    toast.info(
+      ({ closeToast }) => (
+        <div className="space-y-3">
+          <p className="font-semibold text-sm">Delete this hearing?</p>
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={async () => {
+                await api.delete(`/hearings/entry/${id}`);
+                toast.success("Deleted successfully");
+                loadHearings(selectedApp);
+                closeToast();
+              }}
+              className="bg-red-600 text-white px-4 py-1 rounded"
+            >
+              Yes
+            </button>
+            <button
+              onClick={closeToast}
+              className="bg-gray-300 px-4 py-1 rounded"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
-      </div>
-    ), { autoClose: false });
+      ),
+      { autoClose: false }
+    );
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto space-y-8">
 
-      <h2 className="text-2xl font-semibold mb-6">Hearings</h2>
+      {/* ================= HEADER ================= */}
+      <div>
+        <h2 className="text-2xl font-bold text-[#3E4A8A]">
+          Hearings Management
+        </h2>
+        <p className="text-sm text-gray-500">
+          Add, update and manage hearing records
+        </p>
+      </div>
 
-      {/* ✅ SEARCH APPLICATION */}
-      <select
-        value={selectedApp}
-        onChange={(e) => {
-          setSelectedApp(e.target.value);
-          loadHearings(e.target.value);
-        }}
-        className="p-2 border rounded mb-6"
-      >
-        <option value="">Search by Application</option>
-        {applications.map(app => (
-          <option key={app._id} value={app._id}>
-            {app.applicationNumber} — {app.trademark}
-          </option>
-        ))}
-      </select>
-
-      {applicationInfo && (
-        <div className="mb-6 text-sm">
-          <p><b>Trademark:</b> {applicationInfo.trademark}</p>
-          <p><b>Goods:</b> {applicationInfo.goods}</p>
-        </div>
-      )}
-
-      {/* ✅ FORM */}
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 mb-8">
-
-        <input
-          type="date"
-          name="hearingDate"
-          value={form.hearingDate}
-          onChange={handleChange}
-          className="p-2 border rounded"
-          required
-        />
-
-        <input
-          name="before"
-          value={form.before}
-          onChange={handleChange}
-          placeholder="Before"
-          className="p-2 border rounded"
-          required
-        />
-
-        <input
-          name="commentsArguments"
-          value={form.commentsArguments}
-          onChange={handleChange}
-          placeholder="Comments / Arguments"
-          className="p-2 border rounded"
-        />
-
-        <input
-          name="advocateAppeared"
-          value={form.advocateAppeared}
-          onChange={handleChange}
-          placeholder="Advocate Appeared"
-          className="p-2 border rounded"
-        />
-
-        <div className="col-span-2 text-right">
-          <button className="bg-gray-800 text-white px-8 py-2 rounded">
-            {editId ? "Update" : "Save"}
-          </button>
-        </div>
-      </form>
-
-      {/* ✅ TABLE */}
-      <table className="w-full border text-sm">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="border p-2">Date</th>
-            <th className="border p-2">Before</th>
-            <th className="border p-2">Arguments</th>
-            <th className="border p-2">Advocate</th>
-            <th className="border p-2">Edit</th>
-            <th className="border p-2">Delete</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {hearings.map(h => (
-            <tr key={h._id}>
-              <td className="border p-2">{h.hearingDate.slice(0, 10)}</td>
-              <td className="border p-2">{h.before}</td>
-              <td className="border p-2">{h.commentsArguments}</td>
-              <td className="border p-2">{h.advocateAppeared}</td>
-
-              <td
-                className="border p-2 text-blue-600 cursor-pointer"
-                onClick={() => handleEdit(h)}
-              >
-                Edit
-              </td>
-
-              <td
-                className="border p-2 text-red-600 cursor-pointer"
-                onClick={() => handleDelete(h._id)}
-              >
-                Delete
-              </td>
-            </tr>
+      {/* ================= APPLICATION SELECT ================= */}
+      <div className="bg-white p-6 rounded-2xl shadow border">
+        <select
+          value={selectedApp}
+          onChange={(e) => {
+            setSelectedApp(e.target.value);
+            loadHearings(e.target.value);
+          }}
+          className="w-full md:w-1/2 px-4 py-3 rounded-lg bg-gray-100 border
+                     focus:outline-none focus:ring-2 focus:ring-blue-200"
+        >
+          <option value="">Search by Application</option>
+          {applications.map((app) => (
+            <option key={app._id} value={app._id}>
+              {app.applicationNumber} — {app.trademark}
+            </option>
           ))}
-        </tbody>
-      </table>
+        </select>
+
+        {applicationInfo && (
+          <div className="mt-4 text-sm text-gray-700 space-y-1">
+            <p><b>Trademark:</b> {applicationInfo.trademark}</p>
+            <p><b>Goods:</b> {applicationInfo.goods}</p>
+          </div>
+        )}
+      </div>
+
+      {/* ================= FORM ================= */}
+      <div className="bg-white p-6 rounded-2xl shadow border">
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
+          <Input type="date" name="hearingDate" value={form.hearingDate} onChange={handleChange} />
+          <Input name="before" value={form.before} onChange={handleChange} placeholder="Before" />
+          <Input name="commentsArguments" value={form.commentsArguments} onChange={handleChange} placeholder="Comments / Arguments" />
+          <Input name="advocateAppeared" value={form.advocateAppeared} onChange={handleChange} placeholder="Advocate Appeared" />
+
+          <div className="md:col-span-2 text-right">
+            <button className="bg-[#3E4A8A] hover:bg-[#2f3970] text-white px-8 py-3 rounded-lg font-semibold">
+              {editId ? "Update Hearing" : "Save Hearing"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* ================= TABLE ================= */}
+      <div className="bg-white rounded-2xl shadow border overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-100 text-left">
+            <tr>
+              <th className="p-3 border">Date</th>
+              <th className="p-3 border">Before</th>
+              <th className="p-3 border">Arguments</th>
+              <th className="p-3 border">Advocate</th>
+              <th className="p-3 border text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {hearings.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="text-center p-6 text-gray-500">
+                  No hearings found
+                </td>
+              </tr>
+            ) : (
+              hearings.map((h) => (
+                <tr key={h._id} className="hover:bg-gray-50">
+                  <td className="p-3 border">{h.hearingDate.slice(0, 10)}</td>
+                  <td className="p-3 border">{h.before}</td>
+                  <td className="p-3 border">{h.commentsArguments}</td>
+                  <td className="p-3 border">{h.advocateAppeared}</td>
+                  <td className="p-3 border text-center space-x-3">
+                    <button
+                      onClick={() => handleEdit(h)}
+                      className="text-blue-600 font-semibold"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(h._id)}
+                      className="text-red-600 font-semibold"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
     </div>
   );
 };
 
 export default Hearing;
+
+/* ================= INPUT ================= */
+const Input = (props) => (
+  <input
+    {...props}
+    className="px-4 py-3 rounded-lg bg-gray-100 border
+               focus:outline-none focus:ring-2 focus:ring-blue-200"
+  />
+);

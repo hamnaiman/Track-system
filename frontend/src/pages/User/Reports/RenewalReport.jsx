@@ -6,6 +6,7 @@ const UserRenewalDetails = () => {
   const [selectedApp, setSelectedApp] = useState("");
   const [renewal, setRenewal] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   /* ================= LOAD USER APPLICATIONS ================= */
   useEffect(() => {
@@ -15,9 +16,12 @@ const UserRenewalDetails = () => {
   const loadApplications = async () => {
     try {
       const res = await api.get("/applications");
-      setApplications(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
-      console.error("Failed to load applications");
+      const apps = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data || [];
+      setApplications(apps);
+    } catch {
+      setError("Failed to load applications");
     }
   };
 
@@ -27,12 +31,13 @@ const UserRenewalDetails = () => {
 
     setLoading(true);
     setRenewal(null);
+    setError("");
 
     try {
       const res = await api.get(`/renewals/${applicationId}`);
-      setRenewal(res.data);
-    } catch (err) {
-      console.error("No renewal data found");
+      setRenewal(res.data || { entries: [] });
+    } catch {
+      setError("No renewal record found for this application");
       setRenewal(null);
     } finally {
       setLoading(false);
@@ -40,11 +45,11 @@ const UserRenewalDetails = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col gap-6">
 
-      {/* PAGE HEADER */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
+      {/* ===== HEADER ===== */}
+      <div>
+        <h2 className="text-2xl font-semibold text-[#3E4A8A]">
           Renewal Details
         </h2>
         <p className="text-sm text-gray-500">
@@ -52,22 +57,28 @@ const UserRenewalDetails = () => {
         </p>
       </div>
 
-      {/* APPLICATION SELECT */}
-      <div className="bg-white border rounded p-4 mb-6">
+      {/* ===== APPLICATION SELECT ===== */}
+      <div className="bg-white border rounded-lg p-5 shadow-sm">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Select Application
         </label>
 
         <select
-          className="w-full border rounded px-3 py-2"
+          className="w-full border rounded px-3 py-2 focus:ring-1 focus:ring-[#3E4A8A]"
           value={selectedApp}
           onChange={(e) => {
-            setSelectedApp(e.target.value);
-            loadRenewals(e.target.value);
+            const value = e.target.value;
+            setSelectedApp(value);
+            loadRenewals(value);
           }}
         >
           <option value="">-- Select Application --</option>
-          {applications.map(app => (
+
+          {applications.length === 0 && (
+            <option disabled>No applications found</option>
+          )}
+
+          {applications.map((app) => (
             <option key={app._id} value={app._id}>
               {app.applicationNumber} — {app.trademark}
             </option>
@@ -75,56 +86,77 @@ const UserRenewalDetails = () => {
         </select>
       </div>
 
-      {/* LOADING */}
+      {/* ===== LOADING ===== */}
       {loading && (
-        <div className="text-gray-500">Loading renewal details...</div>
+        <div className="text-sm text-gray-500">
+          Loading renewal records...
+        </div>
       )}
 
-      {/* RENEWAL DATA */}
+      {/* ===== ERROR ===== */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded text-sm">
+          {error}
+        </div>
+      )}
+
+      {/* ===== RENEWAL DATA ===== */}
       {!loading && renewal && (
-        <div className="bg-white border rounded shadow-sm">
+        <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
 
           {/* APPLICATION INFO */}
-          <div className="border-b px-4 py-3 bg-gray-50">
-            <p className="text-sm">
+          <div className="border-b px-4 py-3 bg-gray-50 text-sm">
+            <p>
               <strong>Application No:</strong>{" "}
               {renewal.application?.applicationNumber || "-"}
             </p>
-            <p className="text-sm">
+            <p>
               <strong>Trademark:</strong>{" "}
               {renewal.application?.trademark || "-"}
             </p>
           </div>
 
           {/* TABLE */}
-          <div className="overflow-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead className="bg-gray-100">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm border-collapse">
+              <thead className="bg-gray-100 text-gray-700">
                 <tr>
-                  <th className="border px-3 py-2 text-left">Renewed Upto</th>
-                  <th className="border px-3 py-2 text-left">Remark</th>
-                  <th className="border px-3 py-2 text-left">Entry Date</th>
+                  <th className="border px-4 py-2 text-left">
+                    Renewed Upto
+                  </th>
+                  <th className="border px-4 py-2 text-left">
+                    Remark
+                  </th>
+                  <th className="border px-4 py-2 text-left">
+                    Entry Date
+                  </th>
                 </tr>
               </thead>
 
               <tbody>
                 {(!renewal.entries || renewal.entries.length === 0) && (
                   <tr>
-                    <td colSpan="3" className="text-center py-6 text-gray-500">
-                      No renewal records found
+                    <td
+                      colSpan="3"
+                      className="text-center py-8 text-gray-500"
+                    >
+                      No renewal history available
                     </td>
                   </tr>
                 )}
 
-                {renewal.entries?.map(entry => (
-                  <tr key={entry._id} className="hover:bg-gray-50">
-                    <td className="border px-3 py-2">
+                {renewal.entries?.map((entry) => (
+                  <tr
+                    key={entry._id}
+                    className="hover:bg-blue-50 transition"
+                  >
+                    <td className="border px-4 py-2">
                       {new Date(entry.renewedUpto).toLocaleDateString()}
                     </td>
-                    <td className="border px-3 py-2">
+                    <td className="border px-4 py-2">
                       {entry.remark || "-"}
                     </td>
-                    <td className="border px-3 py-2">
+                    <td className="border px-4 py-2">
                       {new Date(entry.createdAt).toLocaleDateString()}
                     </td>
                   </tr>
@@ -133,6 +165,13 @@ const UserRenewalDetails = () => {
             </table>
           </div>
 
+        </div>
+      )}
+
+      {/* ===== EMPTY STATE ===== */}
+      {!loading && selectedApp && !renewal && !error && (
+        <div className="text-center text-gray-500 text-sm py-8">
+          No renewal data found for the selected application
         </div>
       )}
 

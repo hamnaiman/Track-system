@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import api from "../../../api/api";
-
 import { toast } from "react-toastify";
 
 const TMReminderReport = () => {
@@ -11,9 +10,7 @@ const TMReminderReport = () => {
   const [customers, setCustomers] = useState([]);
   const [results, setResults] = useState([]);
 
-  // ---------------------------------------
-  // ✅ LOAD CUSTOMERS FOR DROPDOWN
-  // ---------------------------------------
+  /* ================= LOAD CUSTOMERS ================= */
   useEffect(() => {
     api
       .get("/customers")
@@ -21,12 +18,10 @@ const TMReminderReport = () => {
       .catch(() => toast.error("Failed to load applicants"));
   }, []);
 
-  // ---------------------------------------
-  // ✅ FETCH REPORT
-  // ---------------------------------------
+  /* ================= GENERATE REPORT ================= */
   const generateReport = async () => {
     if (!startDate || !endDate) {
-      toast.warning("Reminder Starting Date and Reminder End Date are required");
+      toast.warning("Reminder date range is required");
       return;
     }
 
@@ -38,99 +33,140 @@ const TMReminderReport = () => {
       });
 
       setResults(res.data.data || []);
-      toast.success("Report generated");
-
+      toast.success("Reminder report generated");
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to generate report");
     }
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow max-w-5xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-6">TM Reminder Report</h2>
+    <div className="max-w-6xl mx-auto space-y-8">
 
-      {/* ------------------------ */}
-      {/* FILTER SECTION */}
-      {/* ------------------------ */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-
-        <div>
-          <label className="font-semibold">Reminder Starting Date:</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="p-3 border rounded w-full"
-          />
-        </div>
-
-        <div>
-          <label className="font-semibold">Reminder End Date:</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="p-3 border rounded w-full"
-          />
-        </div>
-
-        <div className="col-span-2">
-          <label className="font-semibold">Applicant:</label>
-          <select
-            value={applicant}
-            onChange={(e) => setApplicant(e.target.value)}
-            className="p-3 border rounded w-full"
-          >
-            <option value="">Select Client</option>
-            {customers.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.customerName}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <button
-          onClick={generateReport}
-          className="bg-gray-800 text-white px-8 py-2 rounded col-span-2"
-        >
-          Generate
-        </button>
+      {/* ================= HEADER ================= */}
+      <div>
+        <h2 className="text-2xl font-bold text-[#3E4A8A]">
+          TM Reminder Report
+        </h2>
+        <p className="text-sm text-gray-500">
+          Generate trademark reminder reports by date and client
+        </p>
       </div>
 
-      {/* ------------------------ */}
-      {/* RESULT TABLE */}
-      {/* ------------------------ */}
-      <table className="w-full border-collapse text-sm mt-4">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="border p-2">#</th>
-            <th className="border p-2">Application #</th>
-            <th className="border p-2">Trademark</th>
-            <th className="border p-2">Client</th>
-            <th className="border p-2">Reminder Date</th>
-            <th className="border p-2">Remark</th>
-          </tr>
-        </thead>
+      {/* ================= FILTER CARD ================= */}
+      <div className="bg-white rounded-2xl shadow border p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-        <tbody>
-          {results.map((app, i) => (
-            <tr key={app._id}>
-              <td className="border p-2">{i + 1}</td>
-              <td className="border p-2">{app.applicationNumber}</td>
-              <td className="border p-2">{app.trademark}</td>
-              <td className="border p-2">{app.client?.customerName}</td>
-              <td className="border p-2">
-                {new Date(app.reminderDate).toLocaleDateString()}
-              </td>
-              <td className="border p-2">{app.reminderRemark}</td>
+          <div>
+            <label className="text-sm font-semibold text-gray-600">
+              Reminder Start Date
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full mt-1 px-4 py-3 rounded-lg bg-gray-100 border
+                         focus:outline-none focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-semibold text-gray-600">
+              Reminder End Date
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full mt-1 px-4 py-3 rounded-lg bg-gray-100 border
+                         focus:outline-none focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="text-sm font-semibold text-gray-600">
+              Applicant
+            </label>
+            <select
+              value={applicant}
+              onChange={(e) => setApplicant(e.target.value)}
+              className="w-full mt-1 px-4 py-3 rounded-lg bg-gray-100 border
+                         focus:outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              <option value="">All Clients</option>
+              {customers.map((c) => (
+                <option key={c._id} value={c._id}>
+                  {c.customerName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="md:col-span-2 text-right mt-2">
+            <button
+              onClick={generateReport}
+              className="bg-[#3E4A8A] hover:bg-[#2f3970]
+                         text-white px-8 py-3 rounded-lg font-semibold"
+            >
+              Generate Report
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= RESULTS TABLE ================= */}
+      <div className="bg-white rounded-2xl shadow border overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <Th>#</Th>
+              <Th>Application #</Th>
+              <Th>Trademark</Th>
+              <Th>Client</Th>
+              <Th>Reminder Date</Th>
+              <Th>Remark</Th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {results.length === 0 ? (
+              <tr>
+                <td colSpan="6" className="text-center p-6 text-gray-500">
+                  No reminders found
+                </td>
+              </tr>
+            ) : (
+              results.map((app, i) => (
+                <tr key={app._id} className="hover:bg-gray-50">
+                  <Td>{i + 1}</Td>
+                  <Td>{app.applicationNumber}</Td>
+                  <Td>{app.trademark}</Td>
+                  <Td>{app.client?.customerName}</Td>
+                  <Td>
+                    {new Date(app.reminderDate).toLocaleDateString()}
+                  </Td>
+                  <Td>{app.reminderRemark}</Td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
     </div>
   );
 };
 
 export default TMReminderReport;
+
+/* ================= UI HELPERS ================= */
+const Th = ({ children }) => (
+  <th className="p-3 border text-left font-semibold text-gray-700">
+    {children}
+  </th>
+);
+
+const Td = ({ children }) => (
+  <td className="p-3 border text-gray-700">
+    {children}
+  </td>
+);

@@ -19,16 +19,14 @@ const ApplicationDetails = () => {
     tmNumber: "",
     status: "",
     reminderDate: "",
-    reminderRemark: ""
+    reminderRemark: "",
   });
 
   const [applications, setApplications] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [editId, setEditId] = useState(null);
 
-  // ===========================
-  // FETCH DATA
-  // ===========================
+  /* ================= FETCH DATA ================= */
   useEffect(() => {
     fetchApplications();
     fetchCustomers();
@@ -38,7 +36,7 @@ const ApplicationDetails = () => {
     try {
       const res = await api.get("/applications");
       setApplications(res.data.data || []);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load applications");
     }
   };
@@ -47,30 +45,25 @@ const ApplicationDetails = () => {
     try {
       const res = await api.get("/customers");
       setCustomers(res.data.data || []);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load customers");
     }
   };
 
-  // ===========================
-  // HANDLE INPUT
-  // ===========================
-  const handleChange = (e) => {
+  /* ================= HANDLERS ================= */
+  const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
   const toggleClass = (num) => {
     setForm((prev) => ({
       ...prev,
       classes: prev.classes.includes(num)
         ? prev.classes.filter((c) => c !== num)
-        : [...prev.classes, num]
+        : [...prev.classes, num],
     }));
   };
 
-  // ===========================
-  // SAVE / UPDATE
-  // ===========================
+  /* ================= SAVE / UPDATE ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -78,32 +71,29 @@ const ApplicationDetails = () => {
       toast.error("Select at least one class");
       return;
     }
-
     if (!form.client) {
       toast.error("Client is required");
       return;
     }
 
     const payload = { ...form };
-
-    // ❌ remove empty optional ObjectId / Date fields
-    if (!payload.status) delete payload.status;
     if (!payload.takeOverDate) delete payload.takeOverDate;
     if (!payload.reminderDate) delete payload.reminderDate;
+    if (!payload.status) delete payload.status;
 
     try {
       if (editId) {
         await api.put(`/applications/${editId}`, payload);
-        toast.success("✅ Application Updated");
+        toast.success("Application Updated");
       } else {
         await api.post("/applications", payload);
-        toast.success("✅ Application Saved");
+        toast.success("Application Saved");
       }
 
       resetForm();
       fetchApplications();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Application Failed");
+      toast.error(err.response?.data?.message || "Operation failed");
     }
   };
 
@@ -124,31 +114,29 @@ const ApplicationDetails = () => {
       tmNumber: "",
       status: "",
       reminderDate: "",
-      reminderRemark: ""
+      reminderRemark: "",
     });
     setEditId(null);
   };
 
-  // ===========================
-  // EDIT
-  // ===========================
+  /* ================= EDIT ================= */
   const handleEdit = (app) => {
     setForm({
       ...app,
       client: app.client?._id || "",
-      status: app.status?._id || ""
+      status: app.status?._id || "",
     });
     setEditId(app._id);
   };
 
-  // ===========================
-  // DELETE
-  // ===========================
+  /* ================= DELETE ================= */
   const handleDelete = (id) => {
     toast.info(
       ({ closeToast }) => (
-        <div>
-          <p className="font-semibold mb-2">Delete this application?</p>
+        <div className="space-y-3">
+          <p className="font-semibold text-sm">
+            Delete this application?
+          </p>
           <div className="flex justify-end gap-3">
             <button
               onClick={async () => {
@@ -174,200 +162,176 @@ const ApplicationDetails = () => {
     );
   };
 
-  // ===========================
-  // UI
-  // ===========================
   return (
-    <div className="bg-white p-8 rounded-xl shadow max-w-6xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-6">Application Details</h2>
+    <div className="max-w-6xl mx-auto space-y-8">
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-        <input
-          name="applicationNumber"
-          value={form.applicationNumber}
-          onChange={handleChange}
-          placeholder="Application Number"
-          className="p-2 border rounded"
-          required
-        />
+      {/* ================= HEADER ================= */}
+      <div>
+        <h2 className="text-2xl font-bold text-[#3E4A8A]">
+          Application Details
+        </h2>
+        <p className="text-sm text-gray-500">
+          Register and manage trademark applications
+        </p>
+      </div>
 
-        <input
-          name="fileNumber"
-          value={form.fileNumber}
-          onChange={handleChange}
-          placeholder="File Number"
-          className="p-2 border rounded"
-          required
-        />
-
-        <input
-          type="date"
-          name="dateOfFiling"
-          value={form.dateOfFiling}
-          onChange={handleChange}
-          className="p-2 border rounded"
-          required
-        />
-
-        <input
-          type="date"
-          name="takeOverDate"
-          value={form.takeOverDate}
-          onChange={handleChange}
-          className="p-2 border rounded"
-        />
-
-        <input
-          name="periodOfUse"
-          value={form.periodOfUse}
-          onChange={handleChange}
-          placeholder="Period of Use"
-          className="p-2 border rounded"
-        />
-
-        <select
-          name="wordOrLabel"
-          value={form.wordOrLabel}
-          onChange={handleChange}
-          className="p-2 border rounded"
+      {/* ================= FORM CARD ================= */}
+      <div className="bg-white rounded-2xl shadow-md border p-6">
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
-          <option value="Word">Word</option>
-          <option value="Label">Label</option>
-        </select>
+          <Input name="applicationNumber" value={form.applicationNumber} onChange={handleChange} placeholder="Application Number" required />
+          <Input name="fileNumber" value={form.fileNumber} onChange={handleChange} placeholder="File Number" required />
+          <Input type="date" name="dateOfFiling" value={form.dateOfFiling} onChange={handleChange} required />
+          <Input type="date" name="takeOverDate" value={form.takeOverDate} onChange={handleChange} />
 
-        {/* CLASSES */}
-        <div className="col-span-2 grid grid-cols-9 gap-2">
-          {[...Array(45)].map((_, i) => {
-            const num = i + 1;
-            return (
-              <label key={num} className="flex items-center gap-1 text-xs">
-                <input
-                  type="checkbox"
-                  checked={form.classes.includes(num)}
-                  onChange={() => toggleClass(num)}
-                />
-                {num}
-              </label>
-            );
-          })}
+          <Input name="periodOfUse" value={form.periodOfUse} onChange={handleChange} placeholder="Period of Use" />
+
+          <Select name="wordOrLabel" value={form.wordOrLabel} onChange={handleChange}>
+            <option value="Word">Word</option>
+            <option value="Label">Label</option>
+          </Select>
+
+          {/* CLASSES */}
+          <div className="md:col-span-2">
+            <p className="text-sm font-semibold text-[#3E4A8A] mb-2">
+              Trademark Classes
+            </p>
+            <div className="grid grid-cols-6 sm:grid-cols-9 md:grid-cols-12 gap-2">
+              {[...Array(45)].map((_, i) => {
+                const num = i + 1;
+                return (
+                  <label
+                    key={num}
+                    className="flex items-center gap-1 text-xs bg-gray-100 px-2 py-1 rounded"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={form.classes.includes(num)}
+                      onChange={() => toggleClass(num)}
+                    />
+                    {num}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          <Input name="trademark" value={form.trademark} onChange={handleChange} placeholder="Trademark" required />
+          <Textarea name="goods" value={form.goods} onChange={handleChange} placeholder="Goods / Services" className="md:col-span-2" />
+
+          <Select name="client" value={form.client} onChange={handleChange} required>
+            <option value="">Select Client</option>
+            {customers.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.customerName}
+              </option>
+            ))}
+          </Select>
+
+          <Select name="showCauseReceived" value={form.showCauseReceived} onChange={handleChange}>
+            <option value="No">Show Cause: No</option>
+            <option value="Yes">Show Cause: Yes</option>
+          </Select>
+
+          <Input name="conflictingTrademark" value={form.conflictingTrademark} onChange={handleChange} placeholder="Conflicting Trademark" />
+          <Input name="tmNumber" value={form.tmNumber} onChange={handleChange} placeholder="TM Number" />
+          <Input type="date" name="reminderDate" value={form.reminderDate} onChange={handleChange} />
+          <Input name="reminderRemark" value={form.reminderRemark} onChange={handleChange} placeholder="Reminder Remark" />
+
+          <div className="md:col-span-2 text-right mt-6">
+            <button className="bg-[#3E4A8A] hover:bg-[#2f3970] text-white px-8 py-3 rounded-lg font-semibold transition">
+              {editId ? "Update Application" : "Save Application"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* ================= TABLE ================= */}
+      <div className="bg-white rounded-2xl shadow-md border p-6">
+        <h3 className="text-xl font-bold text-[#3E4A8A] mb-4">
+          Applications List
+        </h3>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead className="bg-blue-50 text-[#3E4A8A]">
+              <tr>
+                <Th>App #</Th>
+                <Th>Trademark</Th>
+                <Th>Client</Th>
+                <Th>Edit</Th>
+                <Th>Delete</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {applications.map((app) => (
+                <tr key={app._id} className="border-b hover:bg-gray-50">
+                  <Td>{app.applicationNumber}</Td>
+                  <Td>{app.trademark}</Td>
+                  <Td>{app.client?.customerName}</Td>
+                  <Td
+                    className="text-[#3E4A8A] cursor-pointer font-medium"
+                    onClick={() => handleEdit(app)}
+                  >
+                    Edit
+                  </Td>
+                  <Td
+                    className="text-red-600 cursor-pointer font-medium"
+                    onClick={() => handleDelete(app._id)}
+                  >
+                    Delete
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+      </div>
 
-        <input
-          name="trademark"
-          value={form.trademark}
-          onChange={handleChange}
-          placeholder="Trademark"
-          className="p-2 border rounded"
-          required
-        />
-
-        <textarea
-          name="goods"
-          value={form.goods}
-          onChange={handleChange}
-          placeholder="Goods"
-          className="p-2 border rounded col-span-2"
-        />
-
-        <select
-          name="client"
-          value={form.client}
-          onChange={handleChange}
-          className="p-2 border rounded"
-          required
-        >
-          <option value="">Select Client</option>
-          {customers.map((c) => (
-            <option key={c._id} value={c._id}>
-              {c.customerName}
-            </option>
-          ))}
-        </select>
-
-        <select
-          name="showCauseReceived"
-          value={form.showCauseReceived}
-          onChange={handleChange}
-          className="p-2 border rounded"
-        >
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
-
-        <input
-          name="conflictingTrademark"
-          value={form.conflictingTrademark}
-          onChange={handleChange}
-          placeholder="Conflicting Trademark"
-          className="p-2 border rounded"
-        />
-
-        <input
-          name="tmNumber"
-          value={form.tmNumber}
-          onChange={handleChange}
-          placeholder="TM Number"
-          className="p-2 border rounded"
-        />
-
-        <input
-          type="date"
-          name="reminderDate"
-          value={form.reminderDate}
-          onChange={handleChange}
-          className="p-2 border rounded"
-        />
-
-        <input
-          name="reminderRemark"
-          value={form.reminderRemark}
-          onChange={handleChange}
-          placeholder="Reminder Remark"
-          className="p-2 border rounded"
-        />
-
-        <div className="col-span-2 text-right mt-6">
-          <button className="bg-gray-800 text-white px-8 py-2 rounded">
-            {editId ? "Update" : "Save"}
-          </button>
-        </div>
-      </form>
-
-      {/* TABLE */}
-      <table className="w-full mt-10 border text-sm">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="border p-2">App #</th>
-            <th className="border p-2">Trademark</th>
-            <th className="border p-2">Client</th>
-            <th className="border p-2">Edit</th>
-            <th className="border p-2">Delete</th>
-          </tr>
-        </thead>
-        <tbody>
-          {applications.map((app) => (
-            <tr key={app._id}>
-              <td className="border p-2">{app.applicationNumber}</td>
-              <td className="border p-2">{app.trademark}</td>
-              <td className="border p-2">{app.client?.customerName}</td>
-              <td
-                className="border p-2 text-blue-600 cursor-pointer"
-                onClick={() => handleEdit(app)}
-              >
-                Edit
-              </td>
-              <td
-                className="border p-2 text-red-600 cursor-pointer"
-                onClick={() => handleDelete(app._id)}
-              >
-                Delete
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 };
 
 export default ApplicationDetails;
+
+/* ================= UI HELPERS ================= */
+
+const Input = ({ className = "", ...props }) => (
+  <input
+    {...props}
+    className={`px-4 py-3 rounded-lg bg-gray-100 border
+                focus:outline-none focus:ring-2 focus:ring-blue-200 ${className}`}
+  />
+);
+
+const Textarea = ({ className = "", ...props }) => (
+  <textarea
+    {...props}
+    className={`px-4 py-3 rounded-lg bg-gray-100 border
+                focus:outline-none focus:ring-2 focus:ring-blue-200 ${className}`}
+  />
+);
+
+const Select = ({ className = "", children, ...props }) => (
+  <select
+    {...props}
+    className={`px-4 py-3 rounded-lg bg-gray-100 border
+                focus:outline-none focus:ring-2 focus:ring-blue-200 ${className}`}
+  >
+    {children}
+  </select>
+);
+
+const Th = ({ children }) => (
+  <th className="p-3 border text-left font-semibold">
+    {children}
+  </th>
+);
+
+const Td = ({ children, className = "" }) => (
+  <td className={`p-3 border ${className}`}>
+    {children}
+  </td>
+);

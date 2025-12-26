@@ -5,6 +5,7 @@ const RenewalDetails = () => {
   const [applications, setApplications] = useState([]);
   const [selectedApp, setSelectedApp] = useState("");
   const [renewalData, setRenewalData] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -16,20 +17,17 @@ const RenewalDetails = () => {
   const loadApplications = async () => {
     try {
       const res = await api.get("/applications");
-
       const apps = Array.isArray(res.data)
         ? res.data
         : res.data?.data || [];
-
       setApplications(apps);
-    } catch (err) {
-      console.error("Failed to load applications", err);
+    } catch {
       setApplications([]);
       setError("Failed to load applications");
     }
   };
 
-  /* ================= LOAD RENEWAL DATA ================= */
+  /* ================= LOAD RENEWALS ================= */
   const loadRenewals = async (appId) => {
     if (!appId) return;
 
@@ -40,8 +38,7 @@ const RenewalDetails = () => {
     try {
       const res = await api.get(`/renewals/${appId}`);
       setRenewalData(res.data || { entries: [] });
-    } catch (err) {
-      console.error("No renewal data found");
+    } catch {
       setError("No renewal record found for this application");
       setRenewalData(null);
     } finally {
@@ -50,11 +47,11 @@ const RenewalDetails = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col gap-5">
 
-      {/* HEADER */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
+      {/* ===== HEADER ===== */}
+      <div>
+        <h2 className="text-2xl font-semibold text-[#3E4A8A]">
           Renewal Details
         </h2>
         <p className="text-sm text-gray-500">
@@ -62,20 +59,19 @@ const RenewalDetails = () => {
         </p>
       </div>
 
-      {/* APPLICATION SELECT */}
-      <div className="bg-white border rounded p-4 mb-6">
+      {/* ===== APPLICATION SELECT ===== */}
+      <div className="bg-white border rounded-lg shadow-sm p-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Select Application
         </label>
 
         <select
-          className="w-full border rounded px-3 py-2"
           value={selectedApp}
           onChange={(e) => {
-            const value = e.target.value;
-            setSelectedApp(value);
-            loadRenewals(value);
+            setSelectedApp(e.target.value);
+            loadRenewals(e.target.value);
           }}
+          className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
         >
           <option value="">-- Select Application --</option>
 
@@ -85,49 +81,57 @@ const RenewalDetails = () => {
 
           {applications.map((app) => (
             <option key={app._id} value={app._id}>
-              {app.applicationNumber} - {app.trademark}
+              {app.applicationNumber} — {app.trademark}
             </option>
           ))}
         </select>
       </div>
 
-      {/* LOADING */}
+      {/* ===== LOADING ===== */}
       {loading && (
-        <div className="text-gray-500">
+        <div className="text-sm text-gray-500">
           Loading renewal records...
         </div>
       )}
 
-      {/* ERROR */}
+      {/* ===== ERROR ===== */}
       {error && (
-        <div className="text-red-600 bg-red-50 border border-red-200 p-3 rounded mb-4">
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded text-sm">
           {error}
         </div>
       )}
 
-      {/* RENEWAL DATA */}
+      {/* ===== RENEWAL DATA ===== */}
       {!loading && renewalData && (
-        <div className="bg-white border rounded shadow-sm">
+        <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
 
           {/* APPLICATION INFO */}
-          <div className="border-b px-4 py-3 bg-gray-50">
-            <p className="text-sm">
-              <strong>Application No:</strong>{" "}
+          <div className="px-4 py-3 border-b bg-gray-50 text-sm">
+            <p>
+              <span className="font-medium text-gray-700">
+                Application No:
+              </span>{" "}
               {renewalData.application?.applicationNumber || "-"}
             </p>
-            <p className="text-sm">
-              <strong>Trademark:</strong>{" "}
+            <p>
+              <span className="font-medium text-gray-700">
+                Trademark:
+              </span>{" "}
               {renewalData.application?.trademark || "-"}
             </p>
           </div>
 
           {/* TABLE */}
-          <div className="overflow-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead className="bg-gray-100">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm border-collapse">
+              <thead className="bg-gray-100 text-gray-700">
                 <tr>
-                  <th className="border px-3 py-2">Renewed Upto</th>
-                  <th className="border px-3 py-2">Remark</th>
+                  <th className="border px-4 py-2 text-left whitespace-nowrap">
+                    Renewed Upto
+                  </th>
+                  <th className="border px-4 py-2 text-left">
+                    Remark
+                  </th>
                 </tr>
               </thead>
 
@@ -144,11 +148,14 @@ const RenewalDetails = () => {
                 )}
 
                 {renewalData.entries?.map((entry) => (
-                  <tr key={entry._id}>
-                    <td className="border px-3 py-2">
+                  <tr
+                    key={entry._id}
+                    className="hover:bg-blue-50 transition"
+                  >
+                    <td className="border px-4 py-2 whitespace-nowrap">
                       {new Date(entry.renewedUpto).toLocaleDateString()}
                     </td>
-                    <td className="border px-3 py-2">
+                    <td className="border px-4 py-2">
                       {entry.remark || "-"}
                     </td>
                   </tr>

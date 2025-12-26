@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../../../api/api"
+import api from "../../../api/api";
 import { toast } from "react-toastify";
 
 const CustomerListTM = () => {
@@ -13,16 +13,14 @@ const CustomerListTM = () => {
 
       const res = await api.get("/customers");
 
-      if (!res.data || res.data.length === 0) {
+      if (!res.data || res.data.data?.length === 0) {
         toast.warning("No registered customers found");
         setCustomers([]);
         return;
       }
 
-setCustomers(res.data.data);
-
+      setCustomers(res.data.data);
       toast.success("Customer list generated successfully");
-
     } catch (err) {
       console.error(err);
       toast.error("Failed to generate customer list");
@@ -32,60 +30,70 @@ setCustomers(res.data.data);
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      {/* Page Title */}
-    <h2 className="text-2xl font-semibold mb-2">
-        Customer List – TM
-      </h2>
-     
+    <div className="max-w-6xl mx-auto space-y-8">
 
-      {/* Legacy Style Box */}
-      <div className="bg-white border border-gray-300 rounded-md">
-        <div className="bg-green-100 px-4 py-3 border-b border-gray-300 rounded-t-lg">
-         <h3 className="font-semibold text-gray-800">
-            List of Registered Customers
-          </h3>
-        </div>
-
-        <div className="p-4">
-          <button
-            onClick={handleGenerate}
-            disabled={loading}
-            className="px-4 py-1 bg-gray-300 hover:bg-gray-400 border border-gray-500 text-sm"
-          >
-            {loading ? "Generating..." : "Generate"}
-          </button>
-        </div>
+      {/* ===== HEADER ===== */}
+      <div>
+        <h2 className="text-2xl font-bold text-[#3E4A8A]">
+          Customer List – TM
+        </h2>
+        <p className="text-sm text-gray-500">
+          View all registered trademark customers
+        </p>
       </div>
 
-      {/* Results */}
+      {/* ===== ACTION CARD ===== */}
+      <div className="bg-white rounded-2xl shadow-md border p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h3 className="font-semibold text-gray-700">
+            Registered Customers
+          </h3>
+          <p className="text-sm text-gray-500">
+            Generate and view the customer list
+          </p>
+        </div>
+
+        <button
+          onClick={handleGenerate}
+          disabled={loading}
+          className="bg-[#3E4A8A] hover:bg-[#2f3970]
+                     text-white px-6 py-3 rounded-lg font-semibold
+                     transition disabled:opacity-60"
+        >
+          {loading ? "Generating..." : "Generate List"}
+        </button>
+      </div>
+
+      {/* ===== TABLE ===== */}
       {customers.length > 0 && (
-        <div className="mt-6 bg-white border border-gray-300 rounded-md p-4">
+        <div className="bg-white rounded-2xl shadow-md border p-6">
+          <h3 className="text-xl font-bold text-[#3E4A8A] mb-4">
+            Customer Records
+          </h3>
+
           <div className="overflow-x-auto">
-            <table className="min-w-full border border-gray-300 text-sm">
-              <thead className="bg-gray-100">
+            <table className="w-full text-sm border-collapse">
+              <thead className="bg-blue-50 text-[#3E4A8A]">
                 <tr>
-                  <th className="border px-3 py-2 text-left">Customer Code</th>
-                  <th className="border px-3 py-2 text-left">Customer Name</th>
-                  <th className="border px-3 py-2 text-left">Email</th>
-                  <th className="border px-3 py-2 text-left">Phone</th>
+                  <Th>Customer Code</Th>
+                  <Th>Customer Name</Th>
+                  <Th>Email</Th>
+                  <Th>Phone</Th>
                 </tr>
               </thead>
+
               <tbody>
                 {customers.map((c, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
-                    <td className="border px-3 py-2">
-                      {c.customerCode || "-"}
-                    </td>
-                    <td className="border px-3 py-2">
-                      {c.customerName || c.name || "-"}
-                    </td>
-                    <td className="border px-3 py-2">
+                  <tr
+                    key={i}
+                    className="border-b hover:bg-gray-50"
+                  >
+                    <Td>{c.customerCode || "-"}</Td>
+                    <Td>{c.customerName || c.name || "-"}</Td>
+                    <Td className="truncate max-w-[220px]">
                       {c.email || "-"}
-                    </td>
-                    <td className="border px-3 py-2">
-                      {c.phone || "-"}
-                    </td>
+                    </Td>
+                    <Td>{c.phone || "-"}</Td>
                   </tr>
                 ))}
               </tbody>
@@ -93,8 +101,23 @@ setCustomers(res.data.data);
           </div>
         </div>
       )}
+
     </div>
   );
 };
 
 export default CustomerListTM;
+
+/* ===== UI HELPERS ===== */
+
+const Th = ({ children }) => (
+  <th className="p-3 border text-left font-semibold">
+    {children}
+  </th>
+);
+
+const Td = ({ children, className = "" }) => (
+  <td className={`p-3 border ${className}`}>
+    {children}
+  </td>
+);

@@ -30,76 +30,93 @@ const TMForms = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col gap-5">
 
-      {/* HEADER */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
+      {/* ===== HEADER ===== */}
+      <div>
+        <h2 className="text-2xl font-semibold text-[#3E4A8A]">
           TM Forms
         </h2>
         <p className="text-sm text-gray-500">
-          View available Trademark Forms and their priority
+          View available Trademark forms along with their priority level
         </p>
       </div>
 
-      {/* ERROR */}
+      {/* ===== ERROR ===== */}
       {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-600 p-3 rounded">
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded text-sm">
           {error}
         </div>
       )}
 
-      {/* TABLE */}
-      <div className="bg-white border rounded shadow-sm overflow-auto">
-        <table className="w-full text-sm border-collapse">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border px-3 py-2 text-left">
-                Form Number
-              </th>
-              <th className="border px-3 py-2 text-left">
-                Description
-              </th>
-              <th className="border px-3 py-2 text-center">
-                Priority
-              </th>
-            </tr>
-          </thead>
+      {/* ===== TABLE CARD ===== */}
+      <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
 
-          <tbody>
-            {loading && (
+        {/* TABLE HEADER */}
+        <div className="px-4 py-3 border-b bg-gray-50 font-medium text-gray-700">
+          Trademark Forms List
+        </div>
+
+        {/* TABLE */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm border-collapse">
+            <thead className="bg-gray-100 text-gray-700">
               <tr>
-                <td colSpan="3" className="text-center py-6 text-gray-500">
-                  Loading TM Forms...
-                </td>
+                <th className="border px-4 py-2 text-left whitespace-nowrap">
+                  Form Number
+                </th>
+                <th className="border px-4 py-2 text-left">
+                  Description
+                </th>
+                <th className="border px-4 py-2 text-center whitespace-nowrap">
+                  Priority
+                </th>
               </tr>
-            )}
+            </thead>
 
-            {!loading && forms.length === 0 && (
-              <tr>
-                <td colSpan="3" className="text-center py-6 text-gray-500">
-                  No TM Forms available
-                </td>
-              </tr>
-            )}
+            <tbody>
+              {loading && (
+                <tr>
+                  <td colSpan="3" className="text-center py-6 text-gray-500">
+                    Loading TM Forms...
+                  </td>
+                </tr>
+              )}
 
-            {forms.map((form) => (
-              <tr key={form._id} className="hover:bg-gray-50">
-                <td className="border px-3 py-2">
-                  {form.formNumber}
-                </td>
-                <td className="border px-3 py-2">
-                  {form.description}
-                </td>
-                <td className="border px-3 py-2 text-center">
-                  {form.priority}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              {!loading && forms.length === 0 && (
+                <tr>
+                  <td colSpan="3" className="text-center py-6 text-gray-500">
+                    No TM Forms available
+                  </td>
+                </tr>
+              )}
+
+              {!loading &&
+                forms.map((form) => (
+                  <tr
+                    key={form._id}
+                    className="hover:bg-blue-50 transition"
+                  >
+                    <td className="border px-4 py-2 font-medium text-gray-800 whitespace-nowrap">
+                      {form.formNumber}
+                    </td>
+
+                    <td className="border px-4 py-2 text-gray-700">
+                      {form.description}
+                    </td>
+
+                    <td className="border px-4 py-2 text-center">
+                      <span className="inline-block px-3 py-1 text-xs rounded bg-blue-100 text-[#3E4A8A] font-semibold">
+                        {form.priority}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+
       </div>
-
     </div>
   );
 };

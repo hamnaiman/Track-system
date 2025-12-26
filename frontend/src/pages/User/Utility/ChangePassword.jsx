@@ -16,7 +16,6 @@ const ChangePassword = () => {
     setError("");
     setSuccess("");
 
-    // Basic validation
     if (!currentPassword || !newPassword || !confirmPassword) {
       return setError("All fields are required");
     }
@@ -27,16 +26,14 @@ const ChangePassword = () => {
 
     setLoading(true);
     try {
-      // ✅ BACKEND-COMPATIBLE PAYLOAD
       const res = await api.post("/auth/change-password", {
-        oldPassword: currentPassword,   // backend expects this
+        oldPassword: currentPassword,
         newPassword,
         confirmPassword
       });
 
       setSuccess(res.data.message || "Password updated successfully");
 
-      // Clear form
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -51,37 +48,38 @@ const ChangePassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+    <div className="flex flex-col gap-6 max-w-xl">
 
-      <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6">
+      {/* ===== PAGE HEADER ===== */}
+      <div>
+        <h2 className="text-2xl font-semibold text-[#3E4A8A]">
+          Change Password
+        </h2>
+        <p className="text-sm text-gray-500">
+          Update your account password securely
+        </p>
+      </div>
 
-        {/* HEADER */}
-        <div className="mb-6 text-center">
-          <h1 className="text-xl font-semibold text-gray-800">
-            Change Password
-          </h1>
-          <p className="text-sm text-gray-500">
-            Update your account password
-          </p>
-        </div>
+      {/* ===== FORM CARD ===== */}
+      <div className="bg-white border rounded-lg shadow-sm p-6">
 
-        {/* ERROR MESSAGE */}
+        {/* ERROR */}
         {error && (
-          <div className="mb-4 text-sm text-red-700 bg-red-100 px-3 py-2 rounded">
+          <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 px-4 py-2 rounded">
             {error}
           </div>
         )}
 
-        {/* SUCCESS MESSAGE */}
+        {/* SUCCESS */}
         {success && (
-          <div className="mb-4 text-sm text-green-700 bg-green-100 px-3 py-2 rounded">
+          <div className="mb-4 text-sm text-green-700 bg-green-50 border border-green-200 px-4 py-2 rounded">
             {success}
           </div>
         )}
 
-        {/* FORM */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
 
+          {/* CURRENT PASSWORD */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Current Password
@@ -90,11 +88,12 @@ const ChangePassword = () => {
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
+              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3E4A8A]/40"
               placeholder="Enter current password"
             />
           </div>
 
+          {/* NEW PASSWORD */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               New Password
@@ -103,14 +102,15 @@ const ChangePassword = () => {
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
+              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3E4A8A]/40"
               placeholder="Enter new password"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Minimum 8 characters, 1 uppercase, 1 number, 1 special character
+              Minimum 8 characters, 1 uppercase, 1 number & 1 special character
             </p>
           </div>
 
+          {/* CONFIRM PASSWORD */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Confirm New Password
@@ -119,17 +119,18 @@ const ChangePassword = () => {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
+              className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3E4A8A]/40"
               placeholder="Confirm new password"
             />
           </div>
 
+          {/* SUBMIT */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gray-700 text-white py-2 rounded text-sm hover:bg-gray-800 transition disabled:opacity-60"
+            className="w-full bg-[#3E4A8A] text-white py-2.5 rounded text-sm font-medium hover:bg-[#2f3a72] transition disabled:opacity-60"
           >
-            {loading ? "Updating..." : "Change Password"}
+            {loading ? "Updating..." : "Update Password"}
           </button>
 
         </form>

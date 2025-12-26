@@ -16,7 +16,7 @@ const TMFormEntries = () => {
 
   const [editId, setEditId] = useState(null);
 
-  // ✅ Load Applications & Forms
+  /* ================= LOAD DATA ================= */
   useEffect(() => {
     api.get("/applications").then(res => {
       setApplications(res.data.data || []);
@@ -27,7 +27,6 @@ const TMFormEntries = () => {
     });
   }, []);
 
-  // ✅ Load Entries of Selected Application
   useEffect(() => {
     if (form.applicationId) {
       api.get(`/tm-form-entries/${form.applicationId}`).then(res => {
@@ -36,12 +35,10 @@ const TMFormEntries = () => {
     }
   }, [form.applicationId]);
 
-  // ✅ HANDLE INPUT
-  const handleChange = (e) => {
+  /* ================= HANDLERS ================= */
+  const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
-  // ✅ SAVE / UPDATE
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -53,10 +50,10 @@ const TMFormEntries = () => {
     try {
       if (editId) {
         await api.put(`/tm-form-entries/${editId}`, form);
-        toast.success("✅ Entry Updated");
+        toast.success("TM Form Entry Updated");
       } else {
         await api.post("/tm-form-entries", form);
-        toast.success("✅ Entry Saved");
+        toast.success("TM Form Entry Saved");
       }
 
       setForm({
@@ -70,13 +67,11 @@ const TMFormEntries = () => {
 
       const res = await api.get(`/tm-form-entries/${form.applicationId}`);
       setEntries(res.data || []);
-
     } catch (err) {
       toast.error(err.response?.data?.message || "Operation failed");
     }
   };
 
-  // ✅ EDIT
   const handleEdit = (entry) => {
     setForm({
       applicationId: entry.applicationId,
@@ -87,135 +82,200 @@ const TMFormEntries = () => {
     setEditId(entry._id);
   };
 
-  // ✅ DELETE WITH CONFIRM TOAST
   const handleDelete = (id) => {
-    toast.info(({ closeToast }) => (
-      <div>
-        <p className="font-semibold mb-2">Delete this entry?</p>
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={async () => {
-              await api.delete(`/tm-form-entries/${id}`);
-              toast.success("Deleted Successfully");
+    toast.info(
+      ({ closeToast }) => (
+        <div className="space-y-3">
+          <p className="font-semibold text-sm">
+            Delete this TM Form entry?
+          </p>
 
-              const res = await api.get(`/tm-form-entries/${form.applicationId}`);
-              setEntries(res.data || []);
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={async () => {
+                await api.delete(`/tm-form-entries/${id}`);
+                toast.success("Entry Deleted");
 
-              closeToast();
-            }}
-            className="bg-red-600 text-white px-4 py-1 rounded"
-          >
-            Yes
-          </button>
-          <button onClick={closeToast} className="bg-gray-300 px-4 py-1 rounded">
-            Cancel
-          </button>
+                const res = await api.get(
+                  `/tm-form-entries/${form.applicationId}`
+                );
+                setEntries(res.data || []);
+
+                closeToast();
+              }}
+              className="bg-red-600 text-white px-4 py-1 rounded"
+            >
+              Yes
+            </button>
+
+            <button
+              onClick={closeToast}
+              className="bg-gray-300 px-4 py-1 rounded"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
-      </div>
-    ), { autoClose: false });
+      ),
+      { autoClose: false }
+    );
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto space-y-8">
 
-      <h2 className="text-2xl font-semibold mb-6">TM Form Entries</h2>
+      {/* ================= HEADER ================= */}
+      <div>
+        <h2 className="text-2xl font-bold text-[#3E4A8A]">
+          TM Form Entries
+        </h2>
+        <p className="text-sm text-gray-500">
+          Record and manage TM form filing details
+        </p>
+      </div>
 
-      {/* ✅ FORM */}
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 mb-8">
-
-        <select
-          name="applicationId"
-          value={form.applicationId}
-          onChange={handleChange}
-          className="p-2 border rounded"
-          required
+      {/* ================= FORM ================= */}
+      <div className="bg-white p-6 rounded-2xl shadow border">
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
-          <option value="">Select Application</option>
-          {applications.map(app => (
-            <option key={app._id} value={app._id}>
-              {app.applicationNumber} — {app.trademark}
-            </option>
-          ))}
-        </select>
+          <Select
+            name="applicationId"
+            value={form.applicationId}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select Application</option>
+            {applications.map(app => (
+              <option key={app._id} value={app._id}>
+                {app.applicationNumber} — {app.trademark}
+              </option>
+            ))}
+          </Select>
 
-        <select
-          name="tmForm"
-          value={form.tmForm}
-          onChange={handleChange}
-          className="p-2 border rounded"
-          required
-        >
-          <option value="">Select TM Form</option>
-          {tmForms.map(f => (
-            <option key={f._id} value={f._id}>
-              {f.formNumber}
-            </option>
-          ))}
-        </select>
+          <Select
+            name="tmForm"
+            value={form.tmForm}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select TM Form</option>
+            {tmForms.map(f => (
+              <option key={f._id} value={f._id}>
+                {f.formNumber}
+              </option>
+            ))}
+          </Select>
 
-        <input
-          type="date"
-          name="fillingDate"
-          value={form.fillingDate}
-          onChange={handleChange}
-          className="p-2 border rounded"
-          required
-        />
+          <Input
+            type="date"
+            name="fillingDate"
+            value={form.fillingDate}
+            onChange={handleChange}
+            required
+          />
 
-        <input
-          name="remark"
-          value={form.remark}
-          onChange={handleChange}
-          placeholder="Remark"
-          className="p-2 border rounded"
-        />
+          <Input
+            name="remark"
+            placeholder="Remark (optional)"
+            value={form.remark}
+            onChange={handleChange}
+          />
 
-        <div className="col-span-2 text-right mt-4">
-          <button className="bg-gray-800 text-white px-8 py-2 rounded">
-            {editId ? "Update" : "Save"}
-          </button>
-        </div>
-      </form>
+          <div className="md:col-span-2 text-right mt-4">
+            <button className="bg-[#3E4A8A] hover:bg-[#2f3970]
+                               text-white px-8 py-3 rounded-lg font-semibold">
+              {editId ? "Update Entry" : "Save Entry"}
+            </button>
+          </div>
+        </form>
+      </div>
 
-      {/* ✅ TABLE */}
-      <table className="w-full border text-sm">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="border p-2">Form</th>
-            <th className="border p-2">Filling Date</th>
-            <th className="border p-2">Remark</th>
-            <th className="border p-2">Edit</th>
-            <th className="border p-2">Delete</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {entries.map(e => (
-            <tr key={e._id}>
-              <td className="border p-2">{e.tmForm?.formNumber}</td>
-              <td className="border p-2">{e.fillingDate?.slice(0, 10)}</td>
-              <td className="border p-2">{e.remark}</td>
-
-              <td
-                className="border p-2 text-blue-600 cursor-pointer"
-                onClick={() => handleEdit(e)}
-              >
-                Edit
-              </td>
-
-              <td
-                className="border p-2 text-red-600 cursor-pointer"
-                onClick={() => handleDelete(e._id)}
-              >
-                Delete
-              </td>
+      {/* ================= TABLE ================= */}
+      <div className="bg-white rounded-2xl shadow border overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <Th>Form</Th>
+              <Th>Filing Date</Th>
+              <Th>Remark</Th>
+              <Th className="text-center">Edit</Th>
+              <Th className="text-center">Delete</Th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {entries.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="text-center p-6 text-gray-500">
+                  No entries found
+                </td>
+              </tr>
+            ) : (
+              entries.map(e => (
+                <tr key={e._id} className="hover:bg-gray-50">
+                  <Td>{e.tmForm?.formNumber}</Td>
+                  <Td>{e.fillingDate?.slice(0, 10)}</Td>
+                  <Td>{e.remark}</Td>
+
+                  <Td className="text-center">
+                    <button
+                      onClick={() => handleEdit(e)}
+                      className="text-blue-600 font-semibold"
+                    >
+                      Edit
+                    </button>
+                  </Td>
+
+                  <Td className="text-center">
+                    <button
+                      onClick={() => handleDelete(e._id)}
+                      className="text-red-600 font-semibold"
+                    >
+                      Delete
+                    </button>
+                  </Td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
     </div>
   );
 };
 
 export default TMFormEntries;
+
+/* ================= UI HELPERS ================= */
+const Input = (props) => (
+  <input
+    {...props}
+    className="px-4 py-3 rounded-lg bg-gray-100 border
+               focus:outline-none focus:ring-2 focus:ring-blue-200"
+  />
+);
+
+const Select = ({ children, ...props }) => (
+  <select
+    {...props}
+    className="px-4 py-3 rounded-lg bg-gray-100 border
+               focus:outline-none focus:ring-2 focus:ring-blue-200"
+  >
+    {children}
+  </select>
+);
+
+const Th = ({ children, className = "" }) => (
+  <th className={`p-3 border text-left font-semibold ${className}`}>
+    {children}
+  </th>
+);
+
+const Td = ({ children, className = "" }) => (
+  <td className={`p-3 border ${className}`}>
+    {children}
+  </td>
+);

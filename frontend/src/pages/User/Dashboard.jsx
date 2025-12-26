@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api";
 import {
@@ -26,9 +26,16 @@ const Dashboard = () => {
     setLoading(true);
     try {
       const res = await api.get("/applications");
-      setApplications(Array.isArray(res.data) ? res.data : []);
+
+      // ✅ SAFE NORMALIZATION (MOST IMPORTANT FIX)
+      const data = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data || [];
+
+      setApplications(data);
     } catch (err) {
       console.error("Failed to load applications", err);
+      setApplications([]);
     } finally {
       setLoading(false);
     }
@@ -36,20 +43,31 @@ const Dashboard = () => {
 
   /* ================= DASHBOARD STATS ================= */
   const totalApps = applications.length;
+
   const publishedApps = applications.filter(
-    (a) => a.status === "Published"
+    (app) => app.status?.description === "Published"
   ).length;
+
   const pendingApps = totalApps - publishedApps;
 
-  /* ================= GRAPH DATA ================= */
-  const graphData = applications.reduce((acc, app) => {
-    if (!app.createdAt) return acc;
-    const date = new Date(app.createdAt).toLocaleDateString();
-    const found = acc.find((i) => i.date === date);
-    if (found) found.count += 1;
-    else acc.push({ date, count: 1 });
-    return acc;
-  }, []);
+  /* ================= GRAPH DATA (LIVE) ================= */
+  const graphData = useMemo(() => {
+    if (!applications.length) return [];
+
+    const map = {};
+
+    applications.forEach((app) => {
+      if (!app.createdAt) return;
+
+      const date = new Date(app.createdAt).toLocaleDateString();
+
+      map[date] = (map[date] || 0) + 1;
+    });
+
+    return Object.keys(map)
+      .map((date) => ({ date, count: map[date] }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+  }, [applications]);
 
   return (
     <div className="space-y-8">
@@ -73,21 +91,21 @@ const Dashboard = () => {
         >
           <p className="text-sm text-gray-500">Total Applications</p>
           <h2 className="text-3xl font-bold text-[#3E4A8A] mt-2">
-            {totalApps}
+            {loading ? "…" : totalApps}
           </h2>
         </div>
 
         <div className="bg-white rounded-xl p-6 border hover:shadow-lg transition">
           <p className="text-sm text-gray-500">Published</p>
           <h2 className="text-3xl font-bold text-[#6FAE7B] mt-2">
-            {publishedApps}
+            {loading ? "…" : publishedApps}
           </h2>
         </div>
 
         <div className="bg-white rounded-xl p-6 border hover:shadow-lg transition">
           <p className="text-sm text-gray-500">Pending / In Process</p>
           <h2 className="text-3xl font-bold text-gray-700 mt-2">
-            {pendingApps}
+            {loading ? "…" : pendingApps}
           </h2>
         </div>
 
