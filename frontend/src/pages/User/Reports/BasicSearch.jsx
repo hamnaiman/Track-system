@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../../../api/api";
 
 const BasicSearch = () => {
@@ -11,9 +11,24 @@ const BasicSearch = () => {
     reportType: "summary"
   });
 
+  const [statuses, setStatuses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [error, setError] = useState("");
+
+  // ===== FETCH STATUS LIST =====
+  useEffect(() => {
+    fetchStatuses();
+  }, []);
+
+  const fetchStatuses = async () => {
+    try {
+      const res = await api.get("/file-statuses");
+      setStatuses(res.data?.data || []);
+    } catch (err) {
+      console.error("Failed to fetch statuses:", err);
+    }
+  };
 
   const handleChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
@@ -27,8 +42,9 @@ const BasicSearch = () => {
     try {
       const res = await api.post("/reports/basic-search", filters);
       setResults(res.data?.data || []);
-    } catch {
-      setError("Failed to load report data");
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Failed to load report data");
     } finally {
       setLoading(false);
     }
@@ -65,12 +81,23 @@ const BasicSearch = () => {
             onChange={handleChange}
           />
 
-          <Field
-            label="Status"
-            name="status"
-            value={filters.status}
-            onChange={handleChange}
-          />
+          {/* ===== STATUS DROPDOWN ===== */}
+          <div>
+            <label className="text-sm font-medium text-gray-700">Status</label>
+            <select
+              name="status"
+              value={filters.status}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2 mt-1 focus:ring-1 focus:ring-[#3E4A8A]"
+            >
+              <option value="">All</option>
+              {statuses.map((s) => (
+                <option key={s._id} value={s._id}>
+                  {s.description}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <Field
             label="From Date"
@@ -89,9 +116,7 @@ const BasicSearch = () => {
           />
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Report Type
-            </label>
+            <label className="text-sm font-medium text-gray-700">Report Type</label>
             <select
               name="reportType"
               value={filters.reportType}
@@ -116,11 +141,7 @@ const BasicSearch = () => {
       </div>
 
       {/* ===== LOADING ===== */}
-      {loading && (
-        <div className="text-gray-500 text-sm">
-          Loading report data...
-        </div>
-      )}
+      {loading && <div className="text-gray-500 text-sm">Loading report data...</div>}
 
       {/* ===== ERROR ===== */}
       {error && (
@@ -132,68 +153,39 @@ const BasicSearch = () => {
       {/* ===== RESULTS TABLE ===== */}
       {!loading && results.length > 0 && (
         <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
-
           <div className="px-4 py-3 border-b bg-gray-50 font-medium text-gray-700">
             Search Results ({results.length})
           </div>
-
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm border-collapse">
               <thead className="bg-gray-100 text-gray-700">
                 <tr>
-                  <th className="border px-4 py-2 text-left">
-                    Application No
-                  </th>
-                  <th className="border px-4 py-2 text-left">
-                    Trademark
-                  </th>
-                  <th className="border px-4 py-2 text-left">
-                    Applicant
-                  </th>
-                  <th className="border px-4 py-2 text-left">
-                    Filing Date
-                  </th>
-                  <th className="border px-4 py-2 text-left">
-                    Status
-                  </th>
+                  <th className="border px-4 py-2 text-left">Application No</th>
+                  <th className="border px-4 py-2 text-left">Trademark</th>
+                  <th className="border px-4 py-2 text-left">Applicant</th>
+                  <th className="border px-4 py-2 text-left">Filing Date</th>
+                  <th className="border px-4 py-2 text-left">Status</th>
                 </tr>
               </thead>
-
               <tbody>
                 {results.map((app) => (
-                  <tr
-                    key={app._id}
-                    className="hover:bg-blue-50 transition"
-                  >
-                    <td className="border px-4 py-2">
-                      {app.applicationNumber}
-                    </td>
-                    <td className="border px-4 py-2">
-                      {app.trademark}
-                    </td>
-                    <td className="border px-4 py-2">
-                      {app.client?.customerName || "-"}
-                    </td>
-                    <td className="border px-4 py-2">
-                      {new Date(app.dateOfFiling).toLocaleDateString()}
-                    </td>
-                    <td className="border px-4 py-2">
-                      {app.status?.description || "-"}
-                    </td>
+                  <tr key={app._id} className="hover:bg-blue-50 transition">
+                    <td className="border px-4 py-2">{app.applicationNumber}</td>
+                    <td className="border px-4 py-2">{app.trademark}</td>
+                    <td className="border px-4 py-2">{app.client?.customerName || "-"}</td>
+                    <td className="border px-4 py-2">{new Date(app.dateOfFiling).toLocaleDateString()}</td>
+                    <td className="border px-4 py-2">{app.status?.description || "-"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-
         </div>
       )}
 
       {/* ===== EMPTY ===== */}
       {!loading && results.length === 0 && (
-        <div className="text-gray-500 text-sm">
-          No records found
-        </div>
+        <div className="text-gray-500 text-sm">No records found</div>
       )}
 
     </div>
@@ -203,9 +195,7 @@ const BasicSearch = () => {
 /* ===== REUSABLE INPUT ===== */
 const Field = ({ label, name, value, onChange, type = "text" }) => (
   <div>
-    <label className="text-sm font-medium text-gray-700">
-      {label}
-    </label>
+    <label className="text-sm font-medium text-gray-700">{label}</label>
     <input
       type={type}
       name={name}

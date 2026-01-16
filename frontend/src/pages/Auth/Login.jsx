@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import api from "../../api/api";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -19,48 +20,58 @@ const Login = () => {
         password,
       });
 
+      /* ================= OTP FLOW (AGENT LOGIN) ================= */
       if (res.data.otpRequired) {
         localStorage.setItem("otpUserId", res.data.userId);
+        toast.info("OTP sent to your registered contact");
         navigate("/send-otp");
         return;
       }
 
-      const token = res.data.token;
-      const role = res.data.user?.role?.toLowerCase();
+      const { user, token } = res.data;
 
+      /* ================= SAVE AUTH DATA ================= */
       localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
+      localStorage.setItem("role", user.role?.toLowerCase());
+      localStorage.setItem("userName", user.fullName);
+      localStorage.setItem("authUser", JSON.stringify(user));
 
+      toast.success(`Welcome ${user.fullName}`);
+
+      /* ================= ROLE BASED ROUTING ================= */
+      const role = user.role?.toLowerCase();
       if (role === "admin") navigate("/admin/dashboard");
       else if (role === "user") navigate("/user/dashboard");
       else if (role === "agent") navigate("/agent/dashboard");
-      else alert("Unknown role received!");
+      else toast.error("Unknown role!");
 
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed.");
+      toast.error(err.response?.data?.message || "Login failed");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F4F6F8] px-4">
-
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg border p-8">
 
-        {/* LOGO + TITLE */}
+        {/* ===== HEADER ===== */}
         <div className="text-center mb-8">
           <img
             src="/logo.jpg"
-            alt="IPMS Logo"
+            alt="Trade Developers & Protectors Logo"
             className="h-12 mx-auto mb-3"
           />
+
           <h2 className="text-2xl font-bold text-[#3E4A8A]">
-            IPMS Login
+            Trade Developers & Protectors
           </h2>
+
           <p className="text-sm text-gray-500">
-            Intellectual Property Management System
+            Intellectual Property & Trademark Management System
           </p>
         </div>
 
+        {/* ===== FORM ===== */}
         <form onSubmit={handleSubmit} className="space-y-5">
 
           {/* CUSTOMER CODE */}
@@ -72,8 +83,8 @@ const Login = () => {
               type="text"
               value={customerCode}
               onChange={(e) => setCustomerCode(e.target.value)}
-              placeholder="e.g. IPMS-001"
-              className="mt-1 w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300
+              placeholder="e.g. PEX-ADMIN"
+              className="mt-1 w-full px-4 py-3 rounded-lg bg-gray-100 border
                          focus:outline-none focus:ring-2 focus:ring-blue-200"
               required
             />
@@ -88,8 +99,8 @@ const Login = () => {
               type="text"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
-              placeholder="Enter your user ID"
-              className="mt-1 w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300
+              placeholder="Enter your User ID"
+              className="mt-1 w-full px-4 py-3 rounded-lg bg-gray-100 border
                          focus:outline-none focus:ring-2 focus:ring-blue-200"
               required
             />
@@ -105,13 +116,13 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="mt-1 w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300
+              className="mt-1 w-full px-4 py-3 rounded-lg bg-gray-100 border
                          focus:outline-none focus:ring-2 focus:ring-blue-200"
               required
             />
           </div>
 
-          {/* FORGOT */}
+          {/* FORGOT PASSWORD */}
           <div className="text-right">
             <Link
               to="/forgot-password"

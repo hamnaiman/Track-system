@@ -1,15 +1,30 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import api from "../../../api/api";
+import { toast } from "react-toastify";
 
 const OppositionReminderReport = () => {
   const [filters, setFilters] = useState({
     startDate: "",
     endDate: "",
-    status: "Pending"
+    clientId: ""
   });
 
+  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
+
+  /* LOAD APPLICANTS (CUSTOMERS) */
+  useEffect(() => {
+    const loadClients = async () => {
+      try {
+        const res = await api.get("/customers");
+        setClients(res.data?.data || []);
+      } catch {
+        toast.error("Failed to load applicants");
+      }
+    };
+    loadClients();
+  }, []);
 
   const handleChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
@@ -19,157 +34,142 @@ const OppositionReminderReport = () => {
     try {
       setLoading(true);
 
-      const params = {};
-      if (filters.startDate) params.startDate = filters.startDate;
-      if (filters.endDate) params.endDate = filters.endDate;
-      if (filters.status) params.status = filters.status;
-
       const res = await api.get(
         "/opposition/reminders/report",
-        { params }
+        {
+          params: filters
+        }
       );
 
-      setResults(res.data.data || []);
-    } catch (err) {
-      console.error("Reminder Report Error:", err);
-      alert("Failed to load reminder report");
+      setResults(res.data?.data || []);
+    } catch {
+      toast.error("Failed to load reminder report");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
 
-      {/* PAGE TITLE */}
-      <h1 className="text-2xl font-semibold text-gray-800">
-        Opposition Reminder Report
-      </h1>
+        {/* HEADER */}
+        <div>
+          <h1 className="text-3xl font-bold text-[#3E4A8A]">
+            Opposition Reminder Report
+          </h1>
+          <p className="text-sm text-gray-500">
+            Shows pending opposition work within selected reminder dates
+          </p>
+        </div>
 
-      {/* FILTER CARD */}
-      <div className="bg-white border rounded-lg p-5 shadow-sm">
-        <h2 className="text-lg font-medium text-gray-700 mb-4">
-          Reminder Search
-        </h2>
+        {/* FILTER CARD */}
+        <div className="bg-white rounded-2xl shadow p-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="label">Reminder Start Date</label>
+              <input
+                type="date"
+                name="startDate"
+                value={filters.startDate}
+                onChange={handleChange}
+                className="input"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Reminder Start Date
-            </label>
-            <input
-              type="date"
-              name="startDate"
-              value={filters.startDate}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2 text-sm"
-            />
-          </div>
+            <div>
+              <label className="label">Reminder End Date</label>
+              <input
+                type="date"
+                name="endDate"
+                value={filters.endDate}
+                onChange={handleChange}
+                className="input"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Reminder End Date
-            </label>
-            <input
-              type="date"
-              name="endDate"
-              value={filters.endDate}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2 text-sm"
-            />
-          </div>
+            <div>
+              <label className="label">Applicant</label>
+              <select
+                name="clientId"
+                value={filters.clientId}
+                onChange={handleChange}
+                className="input"
+              >
+                <option value="">All Applicants</option>
+                {clients.map(c => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Status
-            </label>
-            <select
-              name="status"
-              value={filters.status}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2 text-sm"
-            >
-              <option value="Pending">Pending</option>
-              <option value="Completed">Completed</option>
-            </select>
-          </div>
-
-          <div className="flex items-end">
             <button
               onClick={generateReport}
               disabled={loading}
-              className="bg-gray-800 text-white px-6 py-2 rounded hover:bg-gray-900 transition text-sm"
+              className="bg-[#3E4A8A] text-white h-10 rounded-lg hover:bg-[#2f3970]"
             >
               {loading ? "Generating..." : "Generate"}
             </button>
+
           </div>
-
         </div>
-      </div>
 
-      {/* RESULTS GRID */}
-      <div className="bg-white border rounded-lg p-5 shadow-sm">
-        <h2 className="text-lg font-medium text-gray-700 mb-4">
-          Results ({results.length})
-        </h2>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="bg-gray-100 text-gray-700">
-                <th className="border px-3 py-2 text-left">Opposition #</th>
-                <th className="border px-3 py-2 text-left">Reminder Date</th>
-                <th className="border px-3 py-2 text-left">Task</th>
-                <th className="border px-3 py-2 text-left">Status</th>
-                <th className="border px-3 py-2 text-left">Created</th>
+        {/* TABLE */}
+        <div className="bg-white rounded-2xl shadow overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-100 text-gray-700">
+              <tr>
+                <th className="p-3 text-left">Opposition #</th>
+                <th className="p-3 text-left">Applicant</th>
+                <th className="p-3 text-left">Reminder Date</th>
+                <th className="p-3 text-left">Task Description</th>
+                <th className="p-3 text-left">Created On</th>
               </tr>
             </thead>
 
             <tbody>
-              {results.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="5"
-                    className="text-center py-6 text-gray-500"
+              {results.length ? results.map(row => {
+                const isOverdue = new Date(row.reminderDate) < new Date();
+
+                return (
+                  <tr
+                    key={row._id}
+                    className={`border-t ${
+                      isOverdue ? "bg-red-50" : "hover:bg-gray-50"
+                    }`}
                   >
-                    No reminders found
-                  </td>
-                </tr>
-              ) : (
-                results.map((row) => (
-                  <tr key={row._id} className="hover:bg-gray-50">
-                    <td className="border px-3 py-2">
+                    <td className="p-3 font-medium">
                       {row.oppositionNumber}
                     </td>
-                    <td className="border px-3 py-2">
+                    <td className="p-3">
+                      {row.applicantName}
+                    </td>
+                    <td className="p-3">
                       {new Date(row.reminderDate).toLocaleDateString()}
                     </td>
-                    <td className="border px-3 py-2">
+                    <td className="p-3 max-w-lg">
                       {row.taskDescription}
                     </td>
-                    <td className="border px-3 py-2">
-                      <span
-                        className={`px-2 py-1 rounded text-xs ${
-                          row.status === "Pending"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-green-100 text-green-700"
-                        }`}
-                      >
-                        {row.status}
-                      </span>
-                    </td>
-                    <td className="border px-3 py-2">
+                    <td className="p-3">
                       {new Date(row.createdAt).toLocaleDateString()}
                     </td>
                   </tr>
-                ))
+                );
+              }) : (
+                <tr>
+                  <td colSpan="5" className="text-center py-8 text-gray-500">
+                    No pending reminders found
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
 
+      </div>
     </div>
   );
 };

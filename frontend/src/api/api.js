@@ -1,24 +1,28 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/api", 
-  withCredentials: false,
+  baseURL: import.meta.env.VITE_API_URL + "/api",
+  withCredentials: false
 });
 
-// Add token automatically
+// 🔐 Attach token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
-// Auto logout on 401
+// ⚠️ Auto logout ONLY if token exists
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("role");
+    if (
+      err.response?.status === 401 &&
+      localStorage.getItem("token")
+    ) {
+      localStorage.clear();
       window.location.href = "/login";
     }
     return Promise.reject(err);

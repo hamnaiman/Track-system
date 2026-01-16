@@ -8,6 +8,7 @@ const ReminderReport = () => {
   const [records, setRecords] = useState([]);
   const [error, setError] = useState("");
 
+  // ===== GENERATE REPORT =====
   const generateReport = async () => {
     if (!fromDate || !toDate) {
       setError("Please select both From Date and To Date");
@@ -19,7 +20,7 @@ const ReminderReport = () => {
     setRecords([]);
 
     try {
-      const res = await api.post("/reminder-reports", {
+      const res = await api.post("/reports/reminders", {
         fromDate,
         toDate,
         applicant: "all" // user side = own data
@@ -109,28 +110,15 @@ const ReminderReport = () => {
 
               <tbody>
                 {records.map((row, index) => (
-                  <tr
-                    key={index}
-                    className="hover:bg-blue-50 transition"
-                  >
-                    <td className="border px-4 py-2">
-                      {row.applicationNumber}
-                    </td>
-                    <td className="border px-4 py-2">
-                      {row.fileNumber || "-"}
-                    </td>
-                    <td className="border px-4 py-2">
-                      {row.trademark}
-                    </td>
-                    <td className="border px-4 py-2">
-                      {row.goods || "-"}
-                    </td>
+                  <tr key={index} className="hover:bg-blue-50 transition">
+                    <td className="border px-4 py-2">{row.applicationNumber}</td>
+                    <td className="border px-4 py-2">{row.fileNumber || "-"}</td>
+                    <td className="border px-4 py-2">{row.trademark}</td>
+                    <td className="border px-4 py-2">{row.goods || "-"}</td>
                     <td className="border px-4 py-2">
                       {new Date(row.reminderDate).toLocaleDateString()}
                     </td>
-                    <td className="border px-4 py-2">
-                      {row.reminderRemark || "-"}
-                    </td>
+                    <td className="border px-4 py-2">{row.reminderRemark || "-"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -154,9 +142,7 @@ const ReminderReport = () => {
 /* ===== REUSABLE FIELD ===== */
 const Field = ({ label, type = "text", value, onChange }) => (
   <div>
-    <label className="text-sm font-medium text-gray-700">
-      {label}
-    </label>
+    <label className="text-sm font-medium text-gray-700">{label}</label>
     <input
       type={type}
       value={value}

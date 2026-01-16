@@ -1,13 +1,11 @@
-// src/layout/AgentLayout.jsx
-import React from "react";
 import { Outlet } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import AgentSidebar from "../components/AgentSidebar";
 
 const AgentLayout = () => {
   return (
-    <div className="flex min-h-screen">
-      <Sidebar type="agent" />
-      <main className="flex-1 p-6 bg-gr/ay-50">
+    <div className="flex min-h-screen bg-gray-100">
+      <AgentSidebar />
+      <main className="flex-1 p-6">
         <Outlet />
       </main>
     </div>

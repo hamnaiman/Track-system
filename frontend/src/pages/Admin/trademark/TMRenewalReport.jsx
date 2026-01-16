@@ -9,8 +9,9 @@ const TMRenewalReport = () => {
 
   const [customers, setCustomers] = useState([]);
   const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  /* ================= LOAD CUSTOMERS ================= */
+  /* ================= LOAD CLIENTS ================= */
   useEffect(() => {
     api
       .get("/customers")
@@ -18,24 +19,29 @@ const TMRenewalReport = () => {
       .catch(() => toast.error("Failed to load clients"));
   }, []);
 
-  /* ================= GENERATE REPORT ================= */
+  /* ================= GENERATE RENEWAL REPORT ================= */
   const generateReport = async () => {
     if (!fromDate || !toDate) {
       toast.warning("Select both Renewal Due From & Renewal Due To");
       return;
     }
 
+    setLoading(true);
     try {
-      const res = await api.post("/renewal-report", {
+      // ✅ Updated API route
+      const res = await api.post("/renewal/report", {
         fromDate,
         toDate,
         applicant,
       });
 
       setResults(res.data.data || []);
-      toast.success("Renewal report generated");
+      toast.success(`Renewal report generated (${res.data.count || 0})`);
     } catch (err) {
+      console.error("TMRenewalReport Error:", err);
       toast.error(err.response?.data?.message || "Failed to generate report");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -104,10 +110,12 @@ const TMRenewalReport = () => {
           <div className="md:col-span-2 text-right mt-2">
             <button
               onClick={generateReport}
+              disabled={loading}
               className="bg-[#3E4A8A] hover:bg-[#2f3970]
-                         text-white px-8 py-3 rounded-lg font-semibold"
+                         text-white px-8 py-3 rounded-lg font-semibold
+                         disabled:opacity-60"
             >
-              Generate Report
+              {loading ? "Generating..." : "Generate Report"}
             </button>
           </div>
         </div>
@@ -142,9 +150,7 @@ const TMRenewalReport = () => {
                     <Td>{r.application?.applicationNumber}</Td>
                     <Td>{r.application?.trademark}</Td>
                     <Td>{r.application?.client?.customerName}</Td>
-                    <Td>
-                      {new Date(en.renewedUpto).toLocaleDateString()}
-                    </Td>
+                    <Td>{new Date(en.renewedUpto).toLocaleDateString()}</Td>
                     <Td>{en.remark}</Td>
                   </tr>
                 ))

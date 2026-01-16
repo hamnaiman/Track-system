@@ -1,5 +1,4 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -11,164 +10,239 @@ import {
   Tooltip,
   ResponsiveContainer
 } from "recharts";
+import { toast } from "react-toastify";
+import { getAdminDashboard } from "../../api/admin.api";
+
+const MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+];
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
 
-  /* ================= KPI DATA (API READY) ================= */
-  const kpis = [
-    { label: "Total Users", value: 128 },
-    { label: "Total Applications", value: 342 },
-    { label: "Pending Cases", value: 74 },
-    { label: "Hearings Scheduled", value: 19 }
-  ];
-
-  /* ================= BAR CHART ================= */
-  const applicationStats = [
-    { name: "Published", value: 180 },
-    { name: "Pending", value: 120 },
-    { name: "Opposition", value: 42 }
-  ];
-
-  /* ================= PIE CHART ================= */
-  const caseDistribution = [
-    { name: "Trademark", value: 65 },
-    { name: "Opposition", value: 20 },
-    { name: "Renewal", value: 15 }
-  ];
+  /* ================= STATE ================= */
+  const [loading, setLoading] = useState(true);
+  const [kpis, setKpis] = useState([]);
+  const [rawMonthlyData, setRawMonthlyData] = useState([]);
+  const [monthlyApplications, setMonthlyApplications] = useState([]);
+  const [caseDistribution, setCaseDistribution] = useState([]);
+  const [selectedYear, setSelectedYear] = useState("");
+  const [reminders, setReminders] = useState(null);
 
   const pieColors = ["#3E4A8A", "#6FAE7B", "#94A3B8"];
 
-  /* ================= MODULE GROUPS ================= */
-  const moduleGroups = [
-    {
-      title: "System Setup",
-      items: [
-        { name: "Add User", path: "/admin/add-user" },
-        { name: "Country", path: "/admin/country" },
-        { name: "City", path: "/admin/city" },
-        { name: "Business Type", path: "/admin/business-type" },
-        { name: "Class Setup", path: "/admin/class" }
-      ]
-    },
-    {
-      title: "Trademark Operations",
-      items: [
-        { name: "Applications", path: "/admin/application-details" },
-        { name: "Hearings", path: "/admin/hearings" },
-        { name: "Journal", path: "/admin/journal-details" },
-        { name: "Renewals", path: "/admin/renewal-details" }
-      ]
-    },
-    {
-      title: "Reports & Analysis",
-      items: [
-        { name: "Basic Search", path: "/admin/basic-search" },
-        { name: "Renewal Report", path: "/admin/tm-renewal-report" },
-        { name: "Reminder Report", path: "/admin/tm-reminder-report" },
-        { name: "Single Query", path: "/admin/tm-single-query" }
-      ]
+  /* ================= FETCH ================= */
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const res = await getAdminDashboard();
+      const { kpis, monthlyApplications, caseDistribution, reminders } = res.data;
+
+      setKpis([
+        { label: "Total Users", value: kpis.totalUsers },
+        { label: "Trademark Applications", value: kpis.totalApplications },
+        { label: "Opposition Cases", value: kpis.totalOppositions },
+        { label: "Hearings Scheduled", value: kpis.hearingsScheduled }
+      ]);
+
+      setRawMonthlyData(monthlyApplications);
+      setCaseDistribution(caseDistribution);
+      setReminders(reminders);
+
+      if (!selectedYear && monthlyApplications.length) {
+        setSelectedYear(
+          monthlyApplications[monthlyApplications.length - 1].name.split("-")[1]
+        );
+      }
+
+    } catch (err) {
+      console.error("Dashboard error:", err);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  /* ================= FORMAT MONTH DATA ================= */
+  useEffect(() => {
+    if (!selectedYear) return;
+
+    setMonthlyApplications(
+      rawMonthlyData
+        .filter(item => item.name.endsWith(selectedYear))
+        .map(item => {
+          const [month, year] = item.name.split("-");
+          return {
+            name: `${MONTHS[month - 1]} ${year}`,
+            value: item.value
+          };
+        })
+    );
+  }, [rawMonthlyData, selectedYear]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center text-gray-500 mt-10">Loading dashboard…</div>;
+  }
+
+  const availableYears = [
+    ...new Set(rawMonthlyData.map(item => item.name.split("-")[1]))
   ];
 
-  return (
-    <div className="space-y-10">
+  /* ================= TOAST ================= */
+  const showReminderToast = (type) => {
+    if (!reminders) return;
 
-      {/* ===== HEADER ===== */}
+    const content =
+      type === "today"
+        ? {
+            title: " Due Today",
+            a: reminders.breakdown.applications.today,
+            o: reminders.breakdown.oppositions.today,
+            type: toast.info
+          }
+        : {
+            title: " Overdue Cases",
+            a: reminders.breakdown.applications.overdue,
+            o: reminders.breakdown.oppositions.overdue,
+            type: toast.error
+          };
+
+    content.type(
       <div>
-        <h1 className="text-3xl font-bold text-[#3E4A8A]">
-          Admin Dashboard
+        <p className="font-semibold">{content.title}</p>
+        <p className="text-sm mt-1">Trademark Applications: {content.a}</p>
+        <p className="text-sm">Opposition Matters: {content.o}</p>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-8">
+
+      {/* ===== COMPACT HEADER ===== */}
+      <div className="bg-white p-4 rounded-xl border text-center">
+        <h1 className="text-xl font-bold text-[#3E4A8A]">
+          Trade Developers & Protectors
         </h1>
-        <p className="text-gray-500">
-          IPMS system overview & operational insights
+        <p className="text-xs text-gray-500">
+          Administrative Dashboard
         </p>
       </div>
 
-      {/* ===== KPI CARDS ===== */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {kpis.map((kpi) => (
-          <div
-            key={kpi.label}
-            className="bg-white rounded-xl p-6 border shadow-sm"
-          >
-            <p className="text-sm text-gray-500">{kpi.label}</p>
-            <h2 className="text-3xl font-bold text-[#3E4A8A] mt-2">
-              {kpi.value}
-            </h2>
+      {/* ===== CHARTS (TOP PRIORITY) ===== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* BAR */}
+        <div className="bg-white p-5 rounded-xl border">
+          <div className="flex justify-between mb-3">
+            <h3 className="font-semibold text-[#3E4A8A]">
+              Monthly Applications
+            </h3>
+            <select
+              value={selectedYear}
+              onChange={e => setSelectedYear(e.target.value)}
+              className="border rounded px-2 py-1 text-sm"
+            >
+              {availableYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
           </div>
-        ))}
-      </div>
 
-      {/* ===== CHARTS ===== */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* BAR CHART */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-xl border">
-          <h3 className="font-semibold text-[#3E4A8A] mb-4">
-            Application Status Overview
-          </h3>
-          <div className="h-64">
+          <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={applicationStats}>
+              <BarChart data={monthlyApplications}>
                 <XAxis dataKey="name" />
-                <YAxis />
+                <YAxis allowDecimals={false} />
                 <Tooltip />
                 <Bar dataKey="value" fill="#3E4A8A" />
               </BarChart>
             </ResponsiveContainer>
           </div>
+
+          <p className="text-xs text-gray-500 mt-3">
+            Trademark applications filed per month.
+          </p>
         </div>
 
-        {/* PIE CHART */}
-        <div className="bg-white p-6 rounded-xl border">
-          <h3 className="font-semibold text-[#3E4A8A] mb-4">
+        {/* PIE */}
+        <div className="bg-white p-5 rounded-xl border">
+          <h3 className="font-semibold text-[#3E4A8A] mb-3">
             Case Distribution
           </h3>
-          <div className="h-64">
+
+          <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie
-                  data={caseDistribution}
-                  dataKey="value"
-                  innerRadius={50}
-                  outerRadius={80}
-                >
+                <Pie data={caseDistribution} dataKey="value" innerRadius={45} outerRadius={75}>
                   {caseDistribution.map((_, i) => (
-                    <Cell key={i} fill={pieColors[i]} />
+                    <Cell key={i} fill={pieColors[i % pieColors.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
           </div>
-        </div>
 
+          <div className="flex justify-center gap-5 mt-3 text-xs">
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3 bg-[#3E4A8A] rounded-full" /> Applications
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3 bg-[#6FAE7B] rounded-full" /> Oppositions
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3 bg-[#94A3B8] rounded-full" /> Hearings
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* ===== MODULE ACCESS ===== */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {moduleGroups.map((group) => (
-          <div
-            key={group.title}
-            className="bg-white p-6 rounded-xl border"
-          >
-            <h3 className="font-semibold text-[#3E4A8A] mb-4">
-              {group.title}
-            </h3>
-
-            <div className="space-y-2">
-              {group.items.map((item) => (
-                <button
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  className="w-full text-left px-4 py-2 border rounded-lg hover:bg-[#F4F6F8] transition"
-                >
-                  {item.name}
-                </button>
-              ))}
-            </div>
+      {/* ===== KPI CARDS ===== */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpis.map(kpi => (
+          <div key={kpi.label} className="bg-white p-4 rounded-xl border text-center">
+            <p className="text-xs text-gray-500">{kpi.label}</p>
+            <h2 className="text-2xl font-bold text-[#3E4A8A] mt-1">
+              {kpi.value}
+            </h2>
           </div>
         ))}
+      </div>
+
+      {/* ===== REMINDERS ===== */}
+      {reminders && (
+        <div className="bg-white p-4 rounded-xl border">
+          <h3 className="text-sm font-semibold text-[#3E4A8A] mb-3">
+            Case Reminders
+          </h3>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div
+              onClick={() => showReminderToast("today")}
+              className="p-3 bg-blue-50 rounded-lg cursor-pointer text-center"
+            >
+              <p className="text-xs text-gray-600">Due Today</p>
+              <p className="text-xl font-bold text-[#3E4A8A]">{reminders.today}</p>
+            </div>
+
+            <div
+              onClick={() => showReminderToast("overdue")}
+              className="p-3 bg-red-50 rounded-lg cursor-pointer text-center"
+            >
+              <p className="text-xs text-gray-600">Overdue</p>
+              <p className="text-xl font-bold text-red-600">{reminders.overdue}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== FOOTER ===== */}
+      <div className="text-center text-xs text-gray-400 pt-4 border-t">
+        © {new Date().getFullYear()} Trade Developers & Protectors
       </div>
 
     </div>

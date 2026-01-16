@@ -1,347 +1,241 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import api from "../../../api/api";
 import { toast } from "react-toastify";
 
 const AgentRegistration = () => {
+  const [loading, setLoading] = useState(false);
+
+  // 🔒 STATE MATCHES BACKEND MODEL EXACTLY
   const [form, setForm] = useState({
     agentName: "",
-    address: "",
+    phone: "",
+    email: "",
     city: "",
     country: "",
-    phone: "",
-    fax: "",
-    email: "",
-    web: "",
+    contactPersons: [
+      {
+        name: "",
+        designation: "",
+        email: "",
+        mobile: ""
+      }
+    ]
   });
 
-  const [contact, setContact] = useState({
-    name: "",
-    designation: "",
-    email: "",
-    mobile: "",
-  });
+  /* ================= HANDLERS ================= */
 
-  const [contactPersons, setContactPersons] = useState([]);
-  const [agents, setAgents] = useState([]);
-  const [editId, setEditId] = useState(null);
-
-  /* ===== FETCH ===== */
-  const fetchAgents = async () => {
-    try {
-      const res = await api.get("/agents");
-      setAgents(res.data || []);
-    } catch {
-      toast.error("Failed to load agents");
-    }
-  };
-
-  useEffect(() => {
-    fetchAgents();
-  }, []);
-
-  /* ===== HANDLERS ===== */
-  const handleChange = (e) =>
+  const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleContactChange = (e) =>
-    setContact({ ...contact, [e.target.name]: e.target.value });
-
-  /* ===== ADD CONTACT ===== */
-  const addContactPerson = () => {
-    if (!contact.name || !contact.designation || !contact.email || !contact.mobile) {
-      toast.warning("All contact person fields required");
-      return;
-    }
-
-    setContactPersons([...contactPersons, contact]);
-    setContact({ name: "", designation: "", email: "", mobile: "" });
   };
 
-  const removeContact = (index) => {
-    setContactPersons(contactPersons.filter((_, i) => i !== index));
+  const handleContactChange = (e) => {
+    const updated = [...form.contactPersons];
+    updated[0][e.target.name] = e.target.value;
+    setForm({ ...form, contactPersons: updated });
   };
 
-  /* ===== SUBMIT ===== */
+  /* ================= SUBMIT ================= */
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.agentName || !form.address || !form.city || !form.country) {
-      toast.warning("Required fields are missing");
+    // 🔴 HARD FRONTEND VALIDATION (MATCHES BACKEND)
+    if (!form.agentName || !form.city || !form.country) {
+      toast.error("Agent Name, City and Country are required");
+      return;
+    }
+
+    const cp = form.contactPersons[0];
+    if (!cp.name || !cp.designation || !cp.email || !cp.mobile) {
+      toast.error("All Contact Person fields are required");
       return;
     }
 
     try {
-      if (editId) {
-        await api.put(`/agents/${editId}`, {
-          ...form,
-          contactPersons,
-        });
-        toast.success("Agent updated successfully");
-      } else {
-        await api.post("/agents", {
-          ...form,
-          contactPersons,
-        });
-        toast.success("Agent registered successfully");
-      }
+      setLoading(true);
 
+      // DEBUG (keep for now)
+      console.log("AGENT SUBMIT PAYLOAD:", form);
+
+      const res = await api.post("/agents", form);
+
+      toast.success(
+        <div className="space-y-1">
+          <p className="font-semibold text-sm">
+            Agent Registered Successfully
+          </p>
+          <p className="text-sm">
+            User ID: <b>{res.data.credentials.userId}</b>
+          </p>
+          <p className="text-sm">
+            Password: <b>{res.data.credentials.password}</b>
+          </p>
+        </div>,
+        { autoClose: false }
+      );
+
+      // RESET FORM
       setForm({
         agentName: "",
-        address: "",
+        phone: "",
+        email: "",
         city: "",
         country: "",
-        phone: "",
-        fax: "",
-        email: "",
-        web: "",
+        contactPersons: [
+          { name: "", designation: "", email: "", mobile: "" }
+        ]
       });
-      setContactPersons([]);
-      setEditId(null);
-      fetchAgents();
+
     } catch (err) {
-      toast.error(err.response?.data?.message || "Operation failed");
+      console.error("AGENT CREATE ERROR:", err.response?.data);
+      toast.error(err.response?.data?.message || "Agent registration failed");
+    } finally {
+      setLoading(false);
     }
   };
 
-  /* ===== EDIT ===== */
-  const handleEdit = (agent) => {
-    setForm({ ...agent });
-    setContactPersons(agent.contactPersons || []);
-    setEditId(agent._id);
-  };
-
-  /* ===== DELETE ===== */
-  const handleDelete = (id) => {
-    toast.info(
-      ({ closeToast }) => (
-        <div className="flex flex-col gap-3">
-          <p className="font-semibold text-sm">Delete this agent permanently?</p>
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={async () => {
-                try {
-                  await api.delete(`/agents/${id}`);
-                  toast.success("Agent deleted successfully");
-                  fetchAgents();
-                } catch {
-                  toast.error("Delete failed");
-                }
-                closeToast();
-              }}
-              className="bg-red-600 text-white px-4 py-1 rounded"
-            >
-              Yes, Delete
-            </button>
-            <button
-              onClick={closeToast}
-              className="bg-gray-200 px-4 py-1 rounded"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      ),
-      { autoClose: false }
-    );
-  };
+  /* ================= UI ================= */
 
   return (
-    <div className="max-w-6xl mx-auto space-y-10">
+    <div className="max-w-5xl mx-auto p-6">
+      <div className="bg-white border shadow-xl rounded-2xl overflow-hidden">
 
-      {/* ===== FORM CARD ===== */}
-      <div className="bg-white rounded-2xl shadow-md border p-8">
-        <h2 className="text-2xl font-bold text-[#3E4A8A] mb-6">
-          Agent Registration
-        </h2>
+        {/* HEADER */}
+        <div className="bg-gradient-to-r from-[#3E4A8A] to-[#5A6ACF] p-6 text-white">
+          <h2 className="text-2xl font-bold">Agent Registration</h2>
+          <p className="text-sm opacity-90">
+            Create a new trademark agent account
+          </p>
+        </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-5"
-        >
-          {[
-            ["agentName", "Agent Name"],
-            ["city", "City"],
-            ["country", "Country"],
-            ["phone", "Phone"],
-            ["fax", "Fax"],
-            ["email", "Email"],
-            ["web", "Website"],
-          ].map(([name, label]) => (
-            <Input
-              key={name}
-              name={name}
-              label={label}
-              value={form[name]}
-              onChange={handleChange}
-            />
-          ))}
+        <form onSubmit={handleSubmit} className="p-6 space-y-8">
 
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Address
-            </label>
-            <textarea
-              name="address"
-              value={form.address}
-              onChange={handleChange}
-              rows={3}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300
-                         focus:outline-none focus:ring-2 focus:ring-blue-200"
-            />
-          </div>
+          {/* BASIC INFO */}
+          <Section title="Basic Information">
+            <Grid>
+              <Input
+                label="Agent Name"
+                name="agentName"
+                value={form.agentName}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                label="Phone"
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+              />
+              <Input
+                label="Email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+              />
+            </Grid>
+          </Section>
+
+          {/* LOCATION */}
+          <Section title="Location Details">
+            <Grid>
+                <Input
+                label="Country"
+                name="country"
+                value={form.country}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                label="City"
+                name="city"
+                value={form.city}
+                onChange={handleChange}
+                required
+              />
+            
+            </Grid>
+          </Section>
 
           {/* CONTACT PERSON */}
-          <div className="md:col-span-2 mt-4">
-            <h3 className="font-semibold text-gray-700 mb-3">
-              Contact Person
-            </h3>
+          <Section title="Contact Person">
+            <Grid>
+              <Input
+                label="Name"
+                name="name"
+                value={form.contactPersons[0].name}
+                onChange={handleContactChange}
+                required
+              />
+              <Input
+                label="Designation"
+                name="designation"
+                value={form.contactPersons[0].designation}
+                onChange={handleContactChange}
+                required
+              />
+              <Input
+                label="Mobile"
+                name="mobile"
+                value={form.contactPersons[0].mobile}
+                onChange={handleContactChange}
+                required
+              />
+              <Input
+                label="Email"
+                name="email"
+                value={form.contactPersons[0].email}
+                onChange={handleContactChange}
+                required
+              />
+            </Grid>
+          </Section>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              {["name", "designation", "email", "mobile"].map((field) => (
-                <Input
-                  key={field}
-                  name={field}
-                  label={field.toUpperCase()}
-                  value={contact[field]}
-                  onChange={handleContactChange}
-                />
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={addContactPerson}
-              className="mt-4 bg-[#3E4A8A] hover:bg-[#2f3970]
-                         text-white px-5 py-2 rounded-lg font-semibold"
-            >
-              Add Contact Person
-            </button>
-
-            {/* CONTACT LIST */}
-            {contactPersons.map((c, i) => (
-              <div
-                key={i}
-                className="mt-3 flex justify-between items-center
-                           border rounded-lg px-4 py-2 bg-gray-50"
-              >
-                <span className="text-sm">
-                  {c.name} — {c.mobile}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => removeContact(i)}
-                  className="text-red-600 text-sm hover:underline"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <div className="md:col-span-2">
+          {/* SUBMIT */}
+          <div className="flex justify-end pt-4">
             <button
               type="submit"
-              className="w-full bg-[#3E4A8A] hover:bg-[#2f3970]
-                         text-white py-3 rounded-lg font-semibold transition"
+              disabled={loading}
+              className="bg-[#3E4A8A] hover:bg-[#2f396f]
+                         text-white px-8 py-2 rounded-lg shadow font-medium"
             >
-              {editId ? "Update Agent" : "Save Agent"}
+              {loading ? "Registering..." : "Register Agent"}
             </button>
           </div>
+
         </form>
       </div>
-
-      {/* ===== AGENTS TABLE ===== */}
-      <div className="bg-white rounded-2xl shadow-md border p-6">
-        <h3 className="text-xl font-bold text-[#3E4A8A] mb-4">
-          Registered Agents
-        </h3>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead className="bg-blue-50 text-[#3E4A8A]">
-              <tr>
-                <Th>#</Th>
-                <Th>Agent</Th>
-                <Th>City</Th>
-                <Th>Phone</Th>
-                <Th className="text-center">Edit</Th>
-                <Th className="text-center">Delete</Th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {agents.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="6"
-                    className="text-center p-4 text-gray-500"
-                  >
-                    No agents found
-                  </td>
-                </tr>
-              ) : (
-                agents.map((a, i) => (
-                  <tr
-                    key={a._id}
-                    className="border-b hover:bg-gray-50"
-                  >
-                    <Td>{i + 1}</Td>
-                    <Td>{a.agentName}</Td>
-                    <Td>{a.city}</Td>
-                    <Td>{a.phone}</Td>
-
-                    <Td className="text-center">
-                      <button
-                        onClick={() => handleEdit(a)}
-                        className="text-[#3E4A8A] hover:underline"
-                      >
-                        Edit
-                      </button>
-                    </Td>
-
-                    <Td className="text-center">
-                      <button
-                        onClick={() => handleDelete(a._id)}
-                        className="text-red-600 hover:underline"
-                      >
-                        Delete
-                      </button>
-                    </Td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
     </div>
   );
 };
 
 export default AgentRegistration;
 
-/* ===== UI HELPERS ===== */
+/* ================= UI HELPERS ================= */
+
+const Section = ({ title, children }) => (
+  <div className="space-y-4">
+    <h3 className="text-lg font-semibold text-[#3E4A8A] border-b pb-2">
+      {title}
+    </h3>
+    {children}
+  </div>
+);
+
+const Grid = ({ children }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+    {children}
+  </div>
+);
 
 const Input = ({ label, ...props }) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-600 mb-1">
+  <div className="flex flex-col gap-1">
+    <label className="text-sm font-medium text-gray-700">
       {label}
     </label>
     <input
       {...props}
-      className="w-full px-4 py-3 rounded-lg border border-gray-300
-                 focus:outline-none focus:ring-2 focus:ring-blue-200"
+      className="border rounded-lg px-3 py-2
+                 focus:outline-none focus:ring-2 focus:ring-[#3E4A8A]"
     />
   </div>
-);
-
-const Th = ({ children, className = "" }) => (
-  <th className={`p-3 border text-left font-semibold ${className}`}>
-    {children}
-  </th>
-);
-
-const Td = ({ children, className = "" }) => (
-  <td className={`p-3 border ${className}`}>{children}</td>
 );

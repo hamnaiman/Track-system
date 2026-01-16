@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../../api/api";
 import { toast } from "react-toastify";
 
 const TMReminderReport = () => {
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [applicant, setApplicant] = useState("all");
 
   const [customers, setCustomers] = useState([]);
@@ -15,42 +15,35 @@ const TMReminderReport = () => {
   useEffect(() => {
     api
       .get("/customers")
-      .then((res) => setCustomers(res.data?.data || []))
-      .catch(() => toast.error("Failed to load applicants"));
+      .then((res) => {
+        setCustomers(res.data?.data || []);
+      })
+      .catch(() => toast.error("Failed to load clients"));
   }, []);
 
   /* ================= GENERATE REPORT ================= */
   const generateReport = async () => {
-    if (!fromDate || !toDate) {
+    if (!startDate || !endDate) {
       toast.warning("Reminder date range is required");
       return;
     }
 
-    setLoading(true);
-
     try {
+      setLoading(true);
+
       const res = await api.post("/reports/reminders", {
-        fromDate,
-        toDate,
-        applicant: applicant || "all",
+        fromDate: startDate,
+        toDate: endDate,
+        applicant
       });
 
       setResults(res.data?.data || []);
-      toast.success(
-        `Reminder report generated (${res.data?.count || 0})`
-      );
-    } catch (err) {
-      console.error("TM Reminder Report Error:", err);
+      toast.success("Reminder report generated");
 
-      if (err.response?.status === 403) {
-        toast.error("You do not have permission to view this report");
-      } else if (err.response?.status === 401) {
-        toast.error("Session expired. Please login again");
-      } else {
-        toast.error(
-          err.response?.data?.message || "Failed to generate report"
-        );
-      }
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message || "Failed to generate reminder report"
+      );
     } finally {
       setLoading(false);
     }
@@ -58,27 +51,29 @@ const TMReminderReport = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
+
       {/* ================= HEADER ================= */}
       <div>
         <h2 className="text-2xl font-bold text-[#3E4A8A]">
           TM Reminder Report
         </h2>
         <p className="text-sm text-gray-500">
-          Generate trademark reminder reports by date and client
+          Reminder-based follow-up report (read-only)
         </p>
       </div>
 
       {/* ================= FILTER CARD ================= */}
-      <div className="bg-white rounded-2xl shadow border p-6">
+      <div className="bg-white rounded-xl shadow-sm border p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
           <div>
             <label className="text-sm font-semibold text-gray-600">
               Reminder Start Date
             </label>
             <input
               type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
               className="w-full mt-1 px-4 py-3 rounded-lg bg-gray-100 border
                          focus:outline-none focus:ring-2 focus:ring-blue-200"
             />
@@ -90,8 +85,8 @@ const TMReminderReport = () => {
             </label>
             <input
               type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
               className="w-full mt-1 px-4 py-3 rounded-lg bg-gray-100 border
                          focus:outline-none focus:ring-2 focus:ring-blue-200"
             />
@@ -99,7 +94,7 @@ const TMReminderReport = () => {
 
           <div className="md:col-span-2">
             <label className="text-sm font-semibold text-gray-600">
-              Applicant
+              Client (Optional)
             </label>
             <select
               value={applicant}
@@ -131,9 +126,9 @@ const TMReminderReport = () => {
       </div>
 
       {/* ================= RESULTS TABLE ================= */}
-      <div className="bg-white rounded-2xl shadow border overflow-x-auto">
+      <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="bg-gray-100">
+          <thead className="bg-gray-50 text-gray-600">
             <tr>
               <Th>#</Th>
               <Th>Application #</Th>
@@ -145,9 +140,15 @@ const TMReminderReport = () => {
           </thead>
 
           <tbody>
-            {results.length === 0 ? (
+            {loading ? (
               <tr>
-                <td colSpan="6" className="text-center p-6 text-gray-500">
+                <td colSpan="6" className="p-6 text-center text-gray-500">
+                  Loading reminders...
+                </td>
+              </tr>
+            ) : results.length === 0 ? (
+              <tr>
+                <td colSpan="6" className="p-6 text-center text-gray-400">
                   No reminders found
                 </td>
               </tr>
@@ -156,18 +157,21 @@ const TMReminderReport = () => {
                 <tr key={app._id} className="hover:bg-gray-50">
                   <Td>{i + 1}</Td>
                   <Td>{app.applicationNumber}</Td>
-                  <Td>{app.trademark}</Td>
-                  <Td>{app.client?.customerName}</Td>
+                  <Td>{app.trademark || "—"}</Td>
+                  <Td>{app.client?.customerName || "—"}</Td>
                   <Td>
-                    {new Date(app.reminderDate).toLocaleDateString()}
+                    {app.reminderDate
+                      ? new Date(app.reminderDate).toLocaleDateString()
+                      : "—"}
                   </Td>
-                  <Td>{app.reminderRemark}</Td>
+                  <Td>{app.reminderRemark || "—"}</Td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+
     </div>
   );
 };
@@ -176,13 +180,13 @@ export default TMReminderReport;
 
 /* ================= UI HELPERS ================= */
 const Th = ({ children }) => (
-  <th className="p-3 border text-left font-semibold text-gray-700">
+  <th className="p-3 border-b text-left font-semibold">
     {children}
   </th>
 );
 
 const Td = ({ children }) => (
-  <td className="p-3 border text-gray-700">
+  <td className="p-3 border-b text-gray-700">
     {children}
   </td>
 );

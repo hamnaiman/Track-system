@@ -7,122 +7,118 @@ const TMFormEntries = () => {
   const [tmForms, setTMForms] = useState([]);
   const [entries, setEntries] = useState([]);
 
+  const [selectedApp, setSelectedApp] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const [form, setForm] = useState({
-    applicationId: "",
     tmForm: "",
-    fillingDate: "",
+    filingDate: "",
     remark: ""
   });
 
   const [editId, setEditId] = useState(null);
 
-  /* ================= LOAD DATA ================= */
+  /* ================= LOAD MASTER DATA ================= */
   useEffect(() => {
-    api.get("/applications").then(res => {
-      setApplications(res.data.data || []);
-    });
-
-    api.get("/tm-forms").then(res => {
-      setTMForms(res.data || []);
-    });
+    loadMasters();
   }, []);
 
-  useEffect(() => {
-    if (form.applicationId) {
-      api.get(`/tm-form-entries/${form.applicationId}`).then(res => {
-        setEntries(res.data || []);
-      });
-    }
-  }, [form.applicationId]);
+  const loadMasters = async () => {
+    try {
+      const [appsRes, formsRes] = await Promise.all([
+        api.get("/applications"),
+        api.get("/tm-forms")
+      ]);
 
-  /* ================= HANDLERS ================= */
+      setApplications(appsRes.data?.data || []);
+      setTMForms(formsRes.data || []);
+    } catch {
+      toast.error("Failed to load data");
+    }
+  };
+
+  /* ================= FETCH ENTRIES ================= */
+  const fetchEntries = async () => {
+    if (!selectedApp) {
+      toast.warning("Select application first");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await api.get(`/tm-form-entries/${selectedApp}`);
+      setEntries(res.data || []);
+    } catch {
+      toast.error("Failed to load entries");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= FORM ================= */
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+
+  const resetForm = () => {
+    setForm({ tmForm: "", filingDate: "", remark: "" });
+    setEditId(null);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.applicationId || !form.tmForm || !form.fillingDate) {
+    if (!selectedApp || !form.tmForm || !form.filingDate) {
       toast.warning("All required fields must be filled");
       return;
     }
 
     try {
+      const payload = {
+        applicationId: selectedApp,
+        tmForm: form.tmForm,
+        filingDate: form.filingDate,
+        remark: form.remark
+      };
+
       if (editId) {
-        await api.put(`/tm-form-entries/${editId}`, form);
-        toast.success("TM Form Entry Updated");
+        await api.put(`/tm-form-entries/${editId}`, payload);
+        toast.success("TM Form entry updated");
       } else {
-        await api.post("/tm-form-entries", form);
-        toast.success("TM Form Entry Saved");
+        await api.post("/tm-form-entries", payload);
+        toast.success("TM Form entry added");
       }
 
-      setForm({
-        applicationId: form.applicationId,
-        tmForm: "",
-        fillingDate: "",
-        remark: ""
-      });
-
-      setEditId(null);
-
-      const res = await api.get(`/tm-form-entries/${form.applicationId}`);
-      setEntries(res.data || []);
+      resetForm();
+      fetchEntries();
     } catch (err) {
       toast.error(err.response?.data?.message || "Operation failed");
     }
   };
 
-  const handleEdit = (entry) => {
+  /* ================= EDIT / DELETE ================= */
+  const handleEdit = (e) => {
     setForm({
-      applicationId: entry.applicationId,
-      tmForm: entry.tmForm,
-      fillingDate: entry.fillingDate.slice(0, 10),
-      remark: entry.remark
+      tmForm: e.tmForm?._id,
+      filingDate: e.filingDate?.slice(0, 10),
+      remark: e.remark || ""
     });
-    setEditId(entry._id);
+    setEditId(e._id);
   };
 
-  const handleDelete = (id) => {
-    toast.info(
-      ({ closeToast }) => (
-        <div className="space-y-3">
-          <p className="font-semibold text-sm">
-            Delete this TM Form entry?
-          </p>
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this entry?")) return;
 
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={async () => {
-                await api.delete(`/tm-form-entries/${id}`);
-                toast.success("Entry Deleted");
-
-                const res = await api.get(
-                  `/tm-form-entries/${form.applicationId}`
-                );
-                setEntries(res.data || []);
-
-                closeToast();
-              }}
-              className="bg-red-600 text-white px-4 py-1 rounded"
-            >
-              Yes
-            </button>
-
-            <button
-              onClick={closeToast}
-              className="bg-gray-300 px-4 py-1 rounded"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      ),
-      { autoClose: false }
-    );
+    try {
+      await api.delete(`/tm-form-entries/${id}`);
+      toast.success("Entry deleted");
+      fetchEntries();
+    } catch {
+      toast.error("Delete failed");
+    }
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8">
 
       {/* ================= HEADER ================= */}
       <div>
@@ -130,21 +126,18 @@ const TMFormEntries = () => {
           TM Form Entries
         </h2>
         <p className="text-sm text-gray-500">
-          Record and manage TM form filing details
+          Maintain TM Forms filed against trademark applications
         </p>
       </div>
 
-      {/* ================= FORM ================= */}
-      <div className="bg-white p-6 rounded-2xl shadow border">
-        <form
-          onSubmit={handleSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
-        >
-          <Select
-            name="applicationId"
-            value={form.applicationId}
-            onChange={handleChange}
-            required
+      {/* ================= APPLICATION SELECT ================= */}
+      <div className="bg-white p-6 rounded-xl shadow border flex gap-4 items-end">
+        <div className="flex-1">
+          <label className="text-sm font-semibold">Trademark Application</label>
+          <select
+            value={selectedApp}
+            onChange={(e) => setSelectedApp(e.target.value)}
+            className="w-full mt-1 px-4 py-3 rounded-lg bg-gray-100 border"
           >
             <option value="">Select Application</option>
             {applications.map(app => (
@@ -152,130 +145,125 @@ const TMFormEntries = () => {
                 {app.applicationNumber} — {app.trademark}
               </option>
             ))}
-          </Select>
+          </select>
+        </div>
 
-          <Select
-            name="tmForm"
-            value={form.tmForm}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select TM Form</option>
-            {tmForms.map(f => (
-              <option key={f._id} value={f._id}>
-                {f.formNumber}
-              </option>
-            ))}
-          </Select>
-
-          <Input
-            type="date"
-            name="fillingDate"
-            value={form.fillingDate}
-            onChange={handleChange}
-            required
-          />
-
-          <Input
-            name="remark"
-            placeholder="Remark (optional)"
-            value={form.remark}
-            onChange={handleChange}
-          />
-
-          <div className="md:col-span-2 text-right mt-4">
-            <button className="bg-[#3E4A8A] hover:bg-[#2f3970]
-                               text-white px-8 py-3 rounded-lg font-semibold">
-              {editId ? "Update Entry" : "Save Entry"}
-            </button>
-          </div>
-        </form>
+        <button
+          onClick={fetchEntries}
+          className="bg-[#3E4A8A] text-white px-6 py-3 rounded-lg font-semibold"
+        >
+          View
+        </button>
       </div>
+
+      {/* ================= FORM ================= */}
+      {selectedApp && (
+        <div className="bg-white p-6 rounded-xl shadow border">
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 md:grid-cols-3 gap-4"
+          >
+            <select
+              name="tmForm"
+              value={form.tmForm}
+              onChange={handleChange}
+              className="px-4 py-3 rounded-lg bg-gray-100 border"
+            >
+              <option value="">Select TM Form</option>
+              {tmForms.map(f => (
+                <option key={f._id} value={f._id}>
+                  {f.formNumber}
+                </option>
+              ))}
+            </select>
+
+            <input
+              type="date"
+              name="filingDate"
+              value={form.filingDate}
+              onChange={handleChange}
+              className="px-4 py-3 rounded-lg bg-gray-100 border"
+            />
+
+            <input
+              name="remark"
+              placeholder="Remark (optional)"
+              value={form.remark}
+              onChange={handleChange}
+              className="px-4 py-3 rounded-lg bg-gray-100 border"
+            />
+
+            <div className="md:col-span-3 text-right">
+              <button className="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold">
+                {editId ? "Update Entry" : "Add Entry"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* ================= TABLE ================= */}
-      <div className="bg-white rounded-2xl shadow border overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <Th>Form</Th>
-              <Th>Filing Date</Th>
-              <Th>Remark</Th>
-              <Th className="text-center">Edit</Th>
-              <Th className="text-center">Delete</Th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {entries.length === 0 ? (
+      {selectedApp && (
+        <div className="bg-white rounded-xl shadow border overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="bg-gray-100">
               <tr>
-                <td colSpan="5" className="text-center p-6 text-gray-500">
-                  No entries found
-                </td>
+                <th className="p-3 border">TM Form</th>
+                <th className="p-3 border">Filing Date</th>
+                <th className="p-3 border">Remark</th>
+                <th className="p-3 border text-center">Edit</th>
+                <th className="p-3 border text-center">Delete</th>
               </tr>
-            ) : (
-              entries.map(e => (
-                <tr key={e._id} className="hover:bg-gray-50">
-                  <Td>{e.tmForm?.formNumber}</Td>
-                  <Td>{e.fillingDate?.slice(0, 10)}</Td>
-                  <Td>{e.remark}</Td>
-
-                  <Td className="text-center">
-                    <button
-                      onClick={() => handleEdit(e)}
-                      className="text-blue-600 font-semibold"
-                    >
-                      Edit
-                    </button>
-                  </Td>
-
-                  <Td className="text-center">
-                    <button
-                      onClick={() => handleDelete(e._id)}
-                      className="text-red-600 font-semibold"
-                    >
-                      Delete
-                    </button>
-                  </Td>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="5" className="p-6 text-center">
+                    Loading...
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ) : entries.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="p-6 text-center text-gray-500">
+                    No entries found
+                  </td>
+                </tr>
+              ) : (
+                entries.map(e => (
+                  <tr key={e._id}>
+                    <td className="p-3 border">
+                      {e.tmForm?.formNumber}
+                    </td>
+                    <td className="p-3 border">
+                      {e.filingDate?.slice(0, 10)}
+                    </td>
+                    <td className="p-3 border">{e.remark}</td>
+                    <td className="p-3 border text-center">
+                      <button
+                        onClick={() => handleEdit(e)}
+                        className="text-blue-600 font-semibold"
+                      >
+                        Edit
+                      </button>
+                    </td>
+                    <td className="p-3 border text-center">
+                      <button
+                        onClick={() => handleDelete(e._id)}
+                        className="text-red-600 font-semibold"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
     </div>
   );
 };
 
 export default TMFormEntries;
-
-/* ================= UI HELPERS ================= */
-const Input = (props) => (
-  <input
-    {...props}
-    className="px-4 py-3 rounded-lg bg-gray-100 border
-               focus:outline-none focus:ring-2 focus:ring-blue-200"
-  />
-);
-
-const Select = ({ children, ...props }) => (
-  <select
-    {...props}
-    className="px-4 py-3 rounded-lg bg-gray-100 border
-               focus:outline-none focus:ring-2 focus:ring-blue-200"
-  >
-    {children}
-  </select>
-);
-
-const Th = ({ children, className = "" }) => (
-  <th className={`p-3 border text-left font-semibold ${className}`}>
-    {children}
-  </th>
-);
-
-const Td = ({ children, className = "" }) => (
-  <td className={`p-3 border ${className}`}>
-    {children}
-  </td>
-);

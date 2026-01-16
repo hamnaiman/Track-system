@@ -30,17 +30,14 @@ const OppositionDetails = () => {
   const fetchOpposition = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/opposition-report", {
-        params: { oppositionNumber }
-      });
 
-      if (!res.data?.data?.length) {
-        setError("Opposition record not found");
-        return;
-      }
+      // ✅ CORRECT API
+      const res = await api.get(`/oppositions/${oppositionNumber}`);
 
-      setOpposition(res.data.data[0]);
+      setOpposition(res.data);
+      setError("");
     } catch (err) {
+      console.error(err);
       setError("Failed to load opposition details");
     } finally {
       setLoading(false);
@@ -49,11 +46,7 @@ const OppositionDetails = () => {
 
   /* ================= STATES ================= */
   if (!oppositionNumber) {
-    return (
-      <div className="p-6 text-red-600">
-        Opposition number missing in URL
-      </div>
-    );
+    return <div className="p-6 text-red-600">Opposition number missing in URL</div>;
   }
 
   if (loading) {
@@ -74,19 +67,18 @@ const OppositionDetails = () => {
 
           <Info label="Opposition No" value={opposition.oppositionNumber} />
           <Info label="Application No" value={opposition.applicationNumber} />
-          <Info label="Status" value={opposition.status || "—"} />
+          <Info label="Status" value={opposition.status} />
 
-          <Info label="Opposition Type" value={opposition.oppositionType || "—"} />
-          <Info label="Journal No" value={opposition.trademarkJournalNumber || "—"} />
+          <Info label="Opposition Type" value={opposition.oppositionType} />
+          <Info label="Journal No" value={opposition.trademarkJournalNumber} />
           <Info
-            label="Filing Date"
+            label="Opposition Date"
             value={
-              opposition.filingDate
-                ? new Date(opposition.filingDate).toLocaleDateString()
+              opposition.oppositionDate
+                ? new Date(opposition.oppositionDate).toLocaleDateString()
                 : "—"
             }
           />
-
         </div>
       </div>
 
@@ -118,7 +110,7 @@ const OppositionDetails = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
               <Detail label="Trademark" value={opposition.trademark} />
               <Detail label="Client" value={opposition.clientId?.customerName} />
-              <Detail label="Created By" value={opposition.createdBy} />
+              <Detail label="Created By" value={opposition.createdBy?._id} />
               <Detail
                 label="Created On"
                 value={new Date(opposition.createdAt).toLocaleString()}

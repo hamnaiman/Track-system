@@ -8,7 +8,6 @@ const ChangePassword = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✔ Strong password rule (same as backend)
   const strongPass =
     /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
@@ -38,7 +37,7 @@ const ChangePassword = () => {
       const res = await api.post("/auth/change-password", {
         oldPassword,
         newPassword,
-        confirmPassword,
+        confirmPassword
       });
 
       toast.success(res.data.message || "Password updated");
@@ -55,78 +54,68 @@ const ChangePassword = () => {
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4">
-
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg border p-8">
-
-        {/* HEADER */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-[#3E4A8A]">
-            Change Password
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Update your account security
-          </p>
-        </div>
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg border p-6 sm:p-8">
+        
+        <h2 className="text-2xl font-bold text-[#3E4A8A] mb-1">
+          Change Password
+        </h2>
+        <p className="text-sm text-gray-500 mb-6">
+          Update your account password
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
 
           {/* OLD PASSWORD */}
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Old Password
             </label>
             <input
               type="password"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
-              className="input"
+              className="w-full px-4 py-3 rounded-lg bg-gray-100 border focus:ring-2 focus:ring-[#3E4A8A] outline-none"
               required
             />
           </div>
 
           {/* NEW PASSWORD */}
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               New Password
             </label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="input"
+              className="w-full px-4 py-3 rounded-lg bg-gray-100 border focus:ring-2 focus:ring-[#3E4A8A] outline-none"
               required
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Must be at least 8 characters, include uppercase, number & symbol
-            </p>
           </div>
 
           {/* CONFIRM PASSWORD */}
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Confirm New Password
             </label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="input"
+              className="w-full px-4 py-3 rounded-lg bg-gray-100 border focus:ring-2 focus:ring-[#3E4A8A] outline-none"
               required
             />
           </div>
 
-          {/* BUTTON */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#3E4A8A] hover:bg-[#2f3970]
-                       text-white py-3 rounded-lg font-semibold transition
-                       disabled:opacity-60"
+            className="w-full py-3 rounded-lg bg-[#3E4A8A] text-white font-semibold
+                       hover:bg-[#2f3a6f] transition disabled:opacity-60"
           >
             {loading ? "Updating..." : "Update Password"}
           </button>
         </form>
-
       </div>
     </div>
   );

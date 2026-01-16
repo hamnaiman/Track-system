@@ -36,8 +36,8 @@ const Hearings = () => {
     setError("");
 
     try {
-      const res = await api.get(`/hearings/${appId}`);
-      setHearingData(res.data?.data || null);
+     const res = await api.get(`/hearings/${appId}`);
+setHearingData(res.data);
     } catch {
       setError("No hearing record found for this application");
       setHearingData(null);

@@ -1,41 +1,47 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const linkBase =
-  "relative block px-4 py-2 rounded text-sm transition-all";
+  "relative block px-4 py-2 rounded text-sm transition-all duration-200";
 const linkInactive =
   "text-gray-700 hover:bg-blue-50 hover:text-[#3E4A8A]";
 const linkActive =
   "bg-blue-50 text-[#3E4A8A] font-semibold before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-[#3E4A8A]";
 
-const Sidebar = ({ role }) => {
-  return (
-    <aside className="w-64 bg-white border-r h-full flex flex-col">
+const Sidebar = ({ role, name }) => {
+  const navigate = useNavigate();
 
-      {/* ===== HEADER ===== */}
-      <div className="h-14 flex items-center px-4 font-semibold text-[#3E4A8A] border-b bg-white">
-        {role === "admin" ? "IPMS – Admin Panel" : "IPMS – User Panel"}
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    toast.success("Logged out successfully");
+    navigate("/login");
+  };
+
+  return (
+    <aside className="w-64 bg-white border-r h-screen flex flex-col">
+
+      {/* ===== BRAND / NAME (TOP FIXED) ===== */}
+      <div className="h-20 flex flex-col justify-center px-5 border-b shrink-0">
+        <h1 className="text-sm font-bold text-[#3E4A8A] uppercase tracking-wide">
+           TRADE DEVELOPERS & PROTECTORS
+        </h1>
+        {name && (
+          <p className="text-xs text-gray-500 mt-1 truncate">{name}</p>
+        )}
       </div>
 
-      {/* ===== SCROLL AREA ===== */}
-      <div className="flex-1 overflow-y-auto py-2">
+      {/* ===== SCROLLABLE MENU ===== */}
+      <div className="flex-1 overflow-y-auto min-h-0 py-3 space-y-4">
 
         {/* ================= ADMIN ================= */}
         {role === "admin" && (
           <>
-            {/* DASHBOARD */}
-            <nav className="px-2">
-              <NavLink
-                to="/admin/dashboard"
-                className={({ isActive }) =>
-                  `${linkBase} ${isActive ? linkActive : linkInactive}`
-                }
-              >
-                Dashboard
-              </NavLink>
-            </nav>
+            <Section title="Dashboard">
+              <Item to="/admin/dashboard">Dashboard</Item>
+            </Section>
 
-            {/* SETUPS */}
             <Section title="Setups">
               <Item to="/admin/setups/add-user">Add User</Item>
               <Item to="/admin/setups/country">Country</Item>
@@ -50,7 +56,6 @@ const Sidebar = ({ role }) => {
               <Item to="/admin/setups/customer-list-tm">Customer List TM</Item>
             </Section>
 
-            {/* TRADEMARK */}
             <Section title="Trademark">
               <Item to="/admin/trademark/applications">Application Details</Item>
               <Item to="/admin/trademark/hearings">Hearings</Item>
@@ -60,28 +65,29 @@ const Sidebar = ({ role }) => {
               <Item to="/admin/trademark/documents">TM Documents</Item>
             </Section>
 
-            {/* OPPOSITION */}
             <Section title="Opposition">
-              <Item to="/admin/opposition/documents">Opposition Documents</Item>
-              <Item to="/admin/opposition/form-entries">Opposition Form Entries</Item>
-              <Item to="/admin/opposition/report">Opposition Report</Item>
-              <Item to="/admin/opposition/reminder-report">Opposition Reminder Report</Item>
-              <Item to="/admin/opposition/single-query">Opposition Single Query</Item>
-            </Section>
+  {/* ✅ ADD OPPOSITION */}
+  <Item to="/admin/opposition/add">Add Opposition</Item>
 
-            {/* REPORTS */}
+  <Item to="/admin/opposition/documents">Opposition Documents</Item>
+  <Item to="/admin/opposition/form-entries">Opposition Form Entries</Item>
+  <Item to="/admin/opposition/report">Opposition Report</Item>
+  <Item to="/admin/opposition/reminder-report">Opposition Reminder Report</Item>
+  <Item to="/admin/opposition/single-query">Opposition Single Query</Item>
+</Section>
+
+
             <Section title="Reports">
               <Item to="/admin/reports/basic-search">Basic Search</Item>
-              <Item to="/admin/reports/reminder">Reminder Report</Item>
-              <Item to="/admin/reports/renewal">Renewal Report</Item>
+            
               <Item to="/admin/reports/single-query">Single Query</Item>
             </Section>
 
-            {/* UTILITY */}
             <Section title="Utility">
               <Item to="/admin/change-password">Change Password</Item>
               <Item to="/admin/date-setup">Date Setup</Item>
               <Item to="/admin/logo-setup">Logo Setup</Item>
+              <Item to="/admin/user-manual">User Manual</Item>
             </Section>
           </>
         )}
@@ -103,20 +109,32 @@ const Sidebar = ({ role }) => {
             </Section>
           </>
         )}
+
       </div>
+
+      {/* ===== LOGOUT (STICKY BOTTOM) ===== */}
+      <div className="border-t p-3 shrink-0">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2 px-4 py-2 text-sm
+                     text-red-600 hover:bg-red-50 rounded-md transition"
+        >
+          Logout
+        </button>
+      </div>
+
     </aside>
   );
 };
 
 /* ===== REUSABLE COMPONENTS ===== */
-
 const Section = ({ title, children }) => (
-  <>
-    <div className="mt-5 px-4 text-xs font-semibold text-gray-500 uppercase">
+  <div>
+    <div className="px-5 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">
       {title}
     </div>
-    <nav className="mt-1 space-y-1 px-2">{children}</nav>
-  </>
+    <nav className="space-y-1 px-2">{children}</nav>
+  </div>
 );
 
 const Item = ({ to, children }) => (

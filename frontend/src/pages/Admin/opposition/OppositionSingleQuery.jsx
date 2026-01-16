@@ -17,17 +17,14 @@ const OppositionSingleQuery = () => {
     try {
       setLoading(true);
       const res = await api.get("/opposition/single-query", {
-        params: {
-          searchBy,
-          value: searchValue
-        }
+        params: { searchBy, value: searchValue }
       });
 
-      if (!res.data) {
+      if (!res.data?.data) {
         toast.info("No record found");
         setRecord(null);
       } else {
-        setRecord(res.data);
+        setRecord(res.data.data); // ✅ FIX
       }
     } catch (err) {
       toast.error(err.response?.data?.message || "Search failed");
@@ -37,24 +34,26 @@ const OppositionSingleQuery = () => {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
-    <div className="p-6 space-y-6">
-      {/* PAGE TITLE */}
-      <h1 className="text-2xl font-semibold text-gray-800">
-        Opposition Single Query
-      </h1>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
 
-      {/* SEARCH PANEL */}
-      <div className="bg-white border rounded-lg p-5 shadow-sm space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* PAGE HEADER */}
+        <div>
+          <h1 className="text-3xl font-bold text-[#3E4A8A]">
+            Opposition Single Query
+          </h1>
+          <p className="text-sm text-gray-500">
+            Search and print opposition record details
+          </p>
+        </div>
+
+        {/* SEARCH PANEL */}
+        <div className="bg-white rounded-2xl shadow p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
           <select
             value={searchBy}
             onChange={(e) => setSearchBy(e.target.value)}
-            className="border rounded px-3 py-2 text-sm"
+            className="border rounded-lg px-3 py-2"
           >
             <option value="oppositionNumber">Opposition #</option>
             <option value="clientName">Client Name</option>
@@ -63,83 +62,94 @@ const OppositionSingleQuery = () => {
           </select>
 
           <input
-            type="text"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             placeholder="Enter value"
-            className="border rounded px-3 py-2 text-sm col-span-2"
+            className="border rounded-lg px-3 py-2 md:col-span-2"
           />
 
           <button
             onClick={handleSearch}
             disabled={loading}
-            className="bg-gray-800 text-white rounded px-4 py-2 text-sm hover:bg-gray-700"
+            className="bg-[#3E4A8A] text-white rounded-lg hover:bg-[#2f3970]"
           >
             {loading ? "Searching..." : "Search"}
           </button>
         </div>
-      </div>
 
-      {/* RESULT VIEW */}
-      {record && (
-        <div className="bg-white border rounded-lg shadow-sm p-6 space-y-6">
-          {/* OPPOSITION DETAILS */}
-          <div>
-            <h2 className="text-lg font-semibold text-gray-700 mb-3">
-              Opposition Details
-            </h2>
+        {/* RESULT */}
+        {record && (
+          <div className="bg-white rounded-2xl shadow p-6 space-y-6">
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            {/* PRINT HEADER */}
+            <div className="hidden print:block border-b pb-4 mb-6">
+              <div className="flex items-center gap-4">
+                <img
+                  src="/logo.jpg"   // ✅ public/logo.jpg
+                  alt="Logo"
+                  className="h-16"
+                />
+                <div>
+                  <h2 className="text-xl font-bold">
+                    Intellectual Property Law Firm
+                  </h2>
+                  <p className="text-sm">
+                    Trademark & Legal Consultants<br />
+                    info@iplaw.com | 021-XXXXXXX
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* OPPOSITION DETAILS */}
+            <Section title="Opposition Details">
               <Field label="Opposition #" value={record.oppositionNumber} />
               <Field label="File #" value={record.fileNumber} />
               <Field label="Opposition Date" value={record.oppositionDate} />
-              <Field label="Opposition Type" value={record.oppositionType} />
+              <Field label="Type" value={record.oppositionType} />
               <Field label="Status" value={record.status} />
-            </div>
+              <Field label="Remarks" value={record.remarks} full />
+            </Section>
 
-            <div className="mt-3">
-              <Field label="Remarks" value={record.remarks} multiline />
-            </div>
-          </div>
-
-          {/* TRADEMARK DETAILS */}
-          <div>
-            <h2 className="text-lg font-semibold text-gray-700 mb-3">
-              Trademark Details
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            {/* TRADEMARK DETAILS */}
+            <Section title="Trademark Details">
               <Field label="Application #" value={record.applicationNumber} />
               <Field label="Client" value={record.clientName} />
               <Field label="Trademark" value={record.trademark} />
-              <Field label="Journal #" value={record.journalNumber} />
+              <Field label="Goods / Description" value={record.goods} full />
+            </Section>
+
+            {/* ACTIONS */}
+            <div className="flex justify-end print:hidden">
+              <button
+                onClick={() => window.print()}
+                className="border px-6 py-2 rounded-lg hover:bg-gray-100"
+              >
+                Print
+              </button>
             </div>
 
-            <div className="mt-3">
-              <Field label="Goods / Description" value={record.goods} multiline />
-            </div>
           </div>
-
-          {/* ACTIONS */}
-          <div className="flex justify-end gap-3 print:hidden">
-            <button
-              onClick={handlePrint}
-              className="px-4 py-2 border rounded text-sm hover:bg-gray-100"
-            >
-              Print
-            </button>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
 
-/* REUSABLE FIELD */
-const Field = ({ label, value, multiline }) => (
-  <div className={multiline ? "col-span-full" : ""}>
+/* ---------- REUSABLE ---------- */
+const Section = ({ title, children }) => (
+  <div>
+    <h2 className="text-lg font-semibold text-[#3E4A8A] mb-3">{title}</h2>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+      {children}
+    </div>
+  </div>
+);
+
+const Field = ({ label, value, full }) => (
+  <div className={full ? "md:col-span-3" : ""}>
     <label className="block text-xs text-gray-500 mb-1">{label}</label>
-    <div className="border rounded px-3 py-2 bg-gray-50 text-gray-800 min-h-[36px]">
+    <div className="border rounded-lg px-3 py-2 bg-gray-50 min-h-[38px]">
       {value || "-"}
     </div>
   </div>

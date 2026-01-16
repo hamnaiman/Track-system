@@ -3,7 +3,6 @@ import { Outlet } from "react-router-dom";
 import UserSidebar from "../components/UserSidebar";
 
 const UserLayout = () => {
-  const userName = localStorage.getItem("userName") || "User";
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -39,10 +38,23 @@ const UserLayout = () => {
             ☰
           </button>
 
-          {/* Welcome Text */}
-          <h2 className="text-sm sm:text-base font-semibold text-[#3E4A8A]">
-            Welcome, <span className="text-gray-900">{userName}</span>
-          </h2>
+          {/* ===== SYSTEM NAME (FIXED) ===== */}
+          <div className="flex items-center gap-3">
+            <img
+              src="/logo.jpg"
+              alt="TDP Logo"
+              className="h-8 w-auto object-contain"
+            />
+
+            <div className="leading-tight">
+              <h2 className="text-sm sm:text-base font-bold text-[#3E4A8A]">
+                Trade Developers & Protectors
+              </h2>
+              <p className="text-xs text-gray-500 hidden sm:block">
+                Intellectual Property Management System
+              </p>
+            </div>
+          </div>
 
           <div />
         </header>

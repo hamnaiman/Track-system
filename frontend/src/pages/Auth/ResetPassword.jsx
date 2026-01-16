@@ -1,26 +1,42 @@
 import { useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import api from "../../api/api";
-import { Link } from "react-router-dom";
 
-export default function ForgotPassword() {
-  const [email, setEmail] = useState("");
+const ResetPassword = () => {
+  const { token } = useParams(); // token from URL
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setSuccess("");
     setError("");
+    setSuccess("");
 
+    if (!password || !confirmPassword) {
+      return setError("All fields are required");
+    }
+
+    if (password !== confirmPassword) {
+      return setError("Passwords do not match");
+    }
+
+    setLoading(true);
     try {
-      const res = await api.post("/auth/forgot-password", { email });
-      setSuccess(res.data.message || "Reset link sent to your email.");
-      setEmail("");
+      const res = await api.post(`/auth/reset-password/${token}`, {
+        password,
+        confirmPassword
+      });
+
+      setSuccess(res.data.message || "Password reset successfully");
+      setPassword("");
+      setConfirmPassword("");
     } catch (err) {
       setError(
-        err.response?.data?.message || "Something went wrong. Try again."
+        err.response?.data?.message || "Invalid or expired reset link"
       );
     } finally {
       setLoading(false);
@@ -32,14 +48,14 @@ export default function ForgotPassword() {
 
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border">
 
-        {/* HEADER STRIP */}
+        {/* HEADER */}
         <div className="bg-gradient-to-r from-[#3E4A8A] to-[#2f3970] px-8 py-6 text-center">
           <img src="/logo.png" alt="IPMS Logo" className="h-10 mx-auto mb-2" />
           <h2 className="text-xl font-semibold text-white">
-            Forgot Password
+            Reset Password
           </h2>
           <p className="text-xs text-white/80 mt-1">
-            Intellectual Property Management System
+             TRADE DEVELOPERS & PROTECTORS
           </p>
         </div>
 
@@ -60,19 +76,35 @@ export default function ForgotPassword() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
 
-            {/* EMAIL */}
+            {/* NEW PASSWORD */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
+                New Password
               </label>
               <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter new password"
                 className="w-full px-4 py-3 rounded-lg border border-gray-300
-                           focus:outline-none focus:ring-2 focus:ring-blue-300"
+                           focus:outline-none focus:ring-2 focus:ring-[#3E4A8A]/30"
+                required
+              />
+            </div>
+
+            {/* CONFIRM PASSWORD */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300
+                           focus:outline-none focus:ring-2 focus:ring-[#3E4A8A]/30"
+                required
               />
             </div>
 
@@ -84,11 +116,11 @@ export default function ForgotPassword() {
                          text-white py-3 rounded-lg font-semibold transition
                          disabled:opacity-60"
             >
-              {loading ? "Sending..." : "Send Reset Link"}
+              {loading ? "Resetting..." : "Reset Password"}
             </button>
           </form>
 
-          {/* BACK */}
+          {/* BACK TO LOGIN */}
           <div className="mt-6 text-center">
             <Link to="/login" className="text-sm text-[#3E4A8A] hover:underline">
               Back to Login
@@ -99,4 +131,6 @@ export default function ForgotPassword() {
       </div>
     </div>
   );
-}
+};
+
+export default ResetPassword;

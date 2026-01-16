@@ -16,11 +16,11 @@ const CustomerRegistration = () => {
     businessType: "",
     agent: "",
     userName: "",
-    password: "",
+    password: ""
   });
 
   const [contactPersons, setContactPersons] = useState([
-    { name: "", designation: "", email: "", mobile: "" },
+    { name: "", designation: "", email: "", mobile: "" }
   ]);
 
   const [cities, setCities] = useState([]);
@@ -35,22 +35,16 @@ const CustomerRegistration = () => {
     api.get("/agents").then(res => setAgents(res.data || []));
   }, []);
 
-  /* ================= LOAD CITIES ================= */
   useEffect(() => {
-    if (!form.country) {
-      setCities([]);
-      return;
-    }
-
-    api
-      .get(`/cities?countryId=${form.country}`)
+    if (!form.country) return setCities([]);
+    api.get(`/cities?countryId=${form.country}`)
       .then(res => setCities(res.data || []))
       .catch(() => setCities([]));
   }, [form.country]);
 
-  /* ================= HANDLERS ================= */
-  const handleChange = (e) =>
+  const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleContactChange = (index, e) => {
     const updated = [...contactPersons];
@@ -61,14 +55,12 @@ const CustomerRegistration = () => {
   const addContactPerson = () => {
     setContactPersons([
       ...contactPersons,
-      { name: "", designation: "", email: "", mobile: "" },
+      { name: "", designation: "", email: "", mobile: "" }
     ]);
   };
 
-  /* ================= SUBMIT ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       await api.post("/customers", { ...form, contactPersons });
       toast.success("Customer Registered Successfully");
@@ -86,9 +78,8 @@ const CustomerRegistration = () => {
         businessType: "",
         agent: "",
         userName: "",
-        password: "",
+        password: ""
       });
-
       setContactPersons([{ name: "", designation: "", email: "", mobile: "" }]);
       setCities([]);
     } catch (err) {
@@ -97,191 +88,164 @@ const CustomerRegistration = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto px-3 sm:px-6">
 
-      {/* ================= HEADER ================= */}
-      <div>
+      {/* ===== HEADER ===== */}
+      <div className="mb-6">
         <h2 className="text-2xl font-bold text-[#3E4A8A]">
           Customer Registration
         </h2>
         <p className="text-sm text-gray-500">
-          Register new trademark customers in the system
+          Register a new customer and create login credentials
         </p>
       </div>
 
-      {/* ================= FORM CARD ================= */}
-      <div className="bg-white rounded-2xl shadow-md border p-6">
-        <form
-          onSubmit={handleSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
-        >
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white border rounded-2xl shadow-md p-6 space-y-8"
+      >
 
-          {/* PARTY TYPE */}
-          <Select
-            name="partyType"
-            value={form.partyType}
-            onChange={handleChange}
-          >
-            <option value="Local">Local</option>
-            <option value="Foreign">Foreign</option>
-          </Select>
+        {/* ===== BASIC DETAILS ===== */}
+        <section className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">
+            Basic Information
+          </h3>
 
-          <Input
-            name="customerName"
-            value={form.customerName}
-            onChange={handleChange}
-            placeholder="Customer Name"
-            required
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <select name="partyType" value={form.partyType} onChange={handleChange} className="input">
+              <option value="Local">Local</option>
+              <option value="Foreign">Foreign</option>
+            </select>
 
-          <Textarea
-            name="address"
-            value={form.address}
-            onChange={handleChange}
-            placeholder="Address"
-            required
-            className="md:col-span-2"
-          />
+            <input name="customerName" value={form.customerName} onChange={handleChange} placeholder="Customer Name" className="input" required />
 
-          <Select
-            name="country"
-            value={form.country}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select Country</option>
-            {countries.map(c => (
-              <option key={c._id} value={c._id}>{c.name}</option>
-            ))}
-          </Select>
+            <textarea
+              name="address"
+              value={form.address}
+              onChange={handleChange}
+              placeholder="Address"
+              rows={3}
+              className="input md:col-span-2"
+              required
+            />
 
-          <Select
-            name="city"
-            value={form.city}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select City</option>
-            {cities.map(c => (
-              <option key={c._id} value={c._id}>{c.name}</option>
-            ))}
-          </Select>
+            <select name="country" value={form.country} onChange={handleChange} className="input" required>
+              <option value="">Select Country</option>
+              {countries.map(c => (
+                <option key={c._id} value={c._id}>{c.name}</option>
+              ))}
+            </select>
 
-          <Input name="phone" value={form.phone} onChange={handleChange} placeholder="Phone" />
-          <Input name="fax" value={form.fax} onChange={handleChange} placeholder="Fax" />
-          <Input name="email" value={form.email} onChange={handleChange} placeholder="Email" />
-          <Input name="web" value={form.web} onChange={handleChange} placeholder="Website" />
+            <select name="city" value={form.city} onChange={handleChange} className="input" required>
+              <option value="">Select City</option>
+              {cities.map(c => (
+                <option key={c._id} value={c._id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+        </section>
 
-          <Select
-            name="businessType"
-            value={form.businessType}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select Business Type</option>
-            {businessTypes.map(bt => (
-              <option key={bt._id} value={bt._id}>{bt.name}</option>
-            ))}
-          </Select>
+        {/* ===== CONTACT INFO ===== */}
+        <section className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">
+            Contact Information
+          </h3>
 
-          <Select
-            name="agent"
-            value={form.agent}
-            onChange={handleChange}
-          >
-            <option value="">Select Agent</option>
-            {agents.map(a => (
-              <option key={a._id} value={a._id}>{a.agentName}</option>
-            ))}
-          </Select>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input name="phone" value={form.phone} onChange={handleChange} placeholder="Phone" className="input" />
+            <input name="fax" value={form.fax} onChange={handleChange} placeholder="Fax" className="input" />
+            <input name="email" value={form.email} onChange={handleChange} placeholder="Email" className="input" />
+            <input name="web" value={form.web} onChange={handleChange} placeholder="Website" className="input" />
+          </div>
+        </section>
 
-          <Input
-            name="userName"
-            value={form.userName}
-            onChange={handleChange}
-            placeholder="Username"
-            required
-          />
+        {/* ===== BUSINESS / AGENT ===== */}
+        <section className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">
+            Business Details
+          </h3>
 
-          <Input
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="Password"
-            required
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <select name="businessType" value={form.businessType} onChange={handleChange} className="input" required>
+              <option value="">Select Business Type</option>
+              {businessTypes.map(bt => (
+                <option key={bt._id} value={bt._id}>{bt.name}</option>
+              ))}
+            </select>
 
-          {/* ================= CONTACT PERSONS ================= */}
-          <div className="md:col-span-2 mt-4">
-            <h3 className="font-semibold text-[#3E4A8A] mb-2">
-              Contact Persons
-            </h3>
+            <select name="agent" value={form.agent} onChange={handleChange} className="input">
+              <option value="">Select Agent</option>
+              {agents.map(a => (
+                <option key={a._id} value={a._id}>{a.agentName}</option>
+              ))}
+            </select>
+          </div>
+        </section>
 
+        {/* ===== LOGIN DETAILS ===== */}
+        <section className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">
+            Login Credentials
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input name="userName" value={form.userName} onChange={handleChange} placeholder="Username" className="input" required />
+            <input name="password" value={form.password} onChange={handleChange} placeholder="Password" type="password" className="input" required />
+          </div>
+        </section>
+
+        {/* ===== CONTACT PERSONS ===== */}
+        <section className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">
+            Contact Persons
+          </h3>
+
+          <div className="space-y-3">
             {contactPersons.map((cp, index) => (
-              <div
-                key={index}
-                className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3"
-              >
-                <Input name="name" value={cp.name} onChange={(e) => handleContactChange(index, e)} placeholder="Name" />
-                <Input name="designation" value={cp.designation} onChange={(e) => handleContactChange(index, e)} placeholder="Designation" />
-                <Input name="email" value={cp.email} onChange={(e) => handleContactChange(index, e)} placeholder="Email" />
-                <Input name="mobile" value={cp.mobile} onChange={(e) => handleContactChange(index, e)} placeholder="Mobile" />
+              <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <input name="name" value={cp.name} onChange={(e) => handleContactChange(index, e)} placeholder="Name" className="input" />
+                <input name="designation" value={cp.designation} onChange={(e) => handleContactChange(index, e)} placeholder="Designation" className="input" />
+                <input name="email" value={cp.email} onChange={(e) => handleContactChange(index, e)} placeholder="Email" className="input" />
+                <input name="mobile" value={cp.mobile} onChange={(e) => handleContactChange(index, e)} placeholder="Mobile" className="input" />
               </div>
             ))}
-
-            <button
-              type="button"
-              onClick={addContactPerson}
-              className="text-sm text-[#3E4A8A] font-medium"
-            >
-              + Add Contact Person
-            </button>
           </div>
 
-          {/* SUBMIT */}
-          <div className="md:col-span-2 text-right mt-6">
-            <button
-              className="bg-[#3E4A8A] hover:bg-[#2f3970]
-                         text-white px-8 py-3 rounded-lg font-semibold transition"
-            >
-              Save Customer
-            </button>
-          </div>
+          <button type="button" onClick={addContactPerson} className="mt-3 text-sm text-[#3E4A8A] hover:underline">
+            + Add Contact Person
+          </button>
+        </section>
 
-        </form>
-      </div>
+        {/* ===== ACTION ===== */}
+        <div className="text-right pt-4">
+          <button className="bg-[#3E4A8A] text-white px-10 py-2.5 rounded-lg shadow-sm hover:shadow-md hover:bg-[#2f3970] transition">
+            Save Customer
+          </button>
+        </div>
+
+      </form>
+
+      {/* ===== INPUT STYLE ===== */}
+      <style>
+        {`
+          .input {
+            @apply w-full px-4 py-2.5 
+            bg-gray-100 
+            border border-gray-300 
+            rounded-lg 
+            text-sm text-gray-800
+            placeholder-gray-400
+            transition-all duration-200
+            focus:bg-white
+            focus:border-[#3E4A8A]
+            focus:ring-2 focus:ring-[#3E4A8A]/20
+            hover:border-[#3E4A8A]/70;
+          }
+        `}
+      </style>
 
     </div>
   );
 };
 
 export default CustomerRegistration;
-
-/* ================= UI HELPERS ================= */
-
-const Input = ({ className = "", ...props }) => (
-  <input
-    {...props}
-    className={`px-4 py-3 rounded-lg bg-gray-100 border
-                focus:outline-none focus:ring-2 focus:ring-blue-200 ${className}`}
-  />
-);
-
-const Textarea = ({ className = "", ...props }) => (
-  <textarea
-    {...props}
-    className={`px-4 py-3 rounded-lg bg-gray-100 border
-                focus:outline-none focus:ring-2 focus:ring-blue-200 ${className}`}
-  />
-);
-
-const Select = ({ className = "", children, ...props }) => (
-  <select
-    {...props}
-    className={`px-4 py-3 rounded-lg bg-gray-100 border
-                focus:outline-none focus:ring-2 focus:ring-blue-200 ${className}`}
-  >
-    {children}
-  </select>
-);

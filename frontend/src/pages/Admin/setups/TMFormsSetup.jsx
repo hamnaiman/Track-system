@@ -13,7 +13,6 @@ const TMFormsSetup = () => {
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // FETCH TM FORMS
   const fetchForms = async () => {
     try {
       const res = await api.get("/tm-forms");
@@ -27,12 +26,10 @@ const TMFormsSetup = () => {
     fetchForms();
   }, []);
 
-  // INPUT HANDLER
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // CREATE / UPDATE
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -62,7 +59,6 @@ const TMFormsSetup = () => {
     }
   };
 
-  // EDIT
   const handleEdit = (item) => {
     setForm({
       formNumber: item.formNumber,
@@ -72,7 +68,6 @@ const TMFormsSetup = () => {
     setEditId(item._id);
   };
 
-  // DELETE WITH CONFIRM
   const handleDelete = (id) => {
     toast.info(
       ({ closeToast }) => (
@@ -81,7 +76,7 @@ const TMFormsSetup = () => {
             Are you sure you want to delete this TM Form?
           </p>
 
-          <div className="flex justify-end gap-3">
+          <div className="flex flex-col sm:flex-row justify-end gap-3">
             <button
               onClick={async () => {
                 try {
@@ -93,14 +88,14 @@ const TMFormsSetup = () => {
                 }
                 closeToast();
               }}
-              className="bg-red-600 text-white px-4 py-1 rounded"
+              className="bg-red-600 text-white px-4 py-2 rounded"
             >
               Yes, Delete
             </button>
 
             <button
               onClick={closeToast}
-              className="bg-gray-300 px-4 py-1 rounded"
+              className="bg-gray-300 px-4 py-2 rounded"
             >
               Cancel
             </button>
@@ -112,8 +107,7 @@ const TMFormsSetup = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 space-y-8">
       {/* HEADER */}
       <div>
         <h2 className="text-2xl font-bold text-[#3E4A8A]">
@@ -124,8 +118,8 @@ const TMFormsSetup = () => {
         </p>
       </div>
 
-      {/* FORM CARD */}
-      <div className="bg-white rounded-2xl shadow-md border p-6">
+      {/* FORM */}
+      <div className="bg-white rounded-2xl shadow-md border p-4 sm:p-6">
         <form
           onSubmit={handleSubmit}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
@@ -136,8 +130,7 @@ const TMFormsSetup = () => {
             value={form.formNumber}
             onChange={handleChange}
             placeholder="Form Number"
-            className="px-4 py-3 rounded-lg bg-gray-100 border
-                       focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="px-4 py-3 rounded-lg bg-gray-100 border focus:ring-2 focus:ring-blue-200"
           />
 
           <input
@@ -146,27 +139,26 @@ const TMFormsSetup = () => {
             value={form.description}
             onChange={handleChange}
             placeholder="Description"
-            className="px-4 py-3 rounded-lg bg-gray-100 border
-                       focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="px-4 py-3 rounded-lg bg-gray-100 border focus:ring-2 focus:ring-blue-200"
           />
 
-          <input
-            type="number"
+          {/* ✅ PRIORITY DROPDOWN */}
+          <select
             name="priority"
             value={form.priority}
             onChange={handleChange}
-            placeholder="Priority"
-            min="1"
-            className="px-4 py-3 rounded-lg bg-gray-100 border
-                       focus:outline-none focus:ring-2 focus:ring-blue-200"
-          />
+            className="px-4 py-3 rounded-lg bg-gray-100 border focus:ring-2 focus:ring-blue-200"
+          >
+            <option value="">Select Priority</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
 
-          <div className="sm:col-span-2 lg:col-span-3 flex gap-3 mt-2">
+          <div className="col-span-1 sm:col-span-2 lg:col-span-3 flex flex-col sm:flex-row gap-3 mt-2">
             <button
               disabled={loading}
-              className="bg-[#3E4A8A] hover:bg-[#2f3970]
-                         text-white px-6 py-3 rounded-lg font-semibold
-                         transition disabled:opacity-60"
+              className="bg-[#3E4A8A] text-white px-6 py-3 rounded-lg font-semibold w-full sm:w-auto"
             >
               {loading ? "Processing..." : editId ? "Update" : "Save"}
             </button>
@@ -178,7 +170,7 @@ const TMFormsSetup = () => {
                   setEditId(null);
                   setForm({ formNumber: "", description: "", priority: "" });
                 }}
-                className="bg-gray-400 text-white px-6 py-3 rounded-lg"
+                className="bg-gray-400 text-white px-6 py-3 rounded-lg w-full sm:w-auto"
               >
                 Cancel
               </button>
@@ -187,29 +179,28 @@ const TMFormsSetup = () => {
         </form>
       </div>
 
-      {/* TABLE CARD */}
-      <div className="bg-white rounded-2xl shadow-md border p-6">
+      {/* TABLE */}
+      <div className="bg-white rounded-2xl shadow-md border p-4 sm:p-6">
         <h3 className="text-xl font-bold text-[#3E4A8A] mb-4">
           TM Forms List
         </h3>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
+          <table className="min-w-[700px] w-full text-sm">
             <thead className="bg-blue-50 text-[#3E4A8A]">
               <tr>
                 <Th>#</Th>
                 <Th>Form No</Th>
                 <Th>Description</Th>
                 <Th className="text-center">Priority</Th>
-                <Th>Edit</Th>
-                <Th>Delete</Th>
+                <Th className="text-center">Actions</Th>
               </tr>
             </thead>
 
             <tbody>
               {tmForms.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="text-center p-6 text-gray-500">
+                  <td colSpan="5" className="text-center p-6 text-gray-500">
                     No Forms Found
                   </td>
                 </tr>
@@ -218,21 +209,23 @@ const TMFormsSetup = () => {
                   <tr key={item._id} className="border-b hover:bg-gray-50">
                     <Td>{index + 1}</Td>
                     <Td>{item.formNumber}</Td>
-                    <Td>{item.description}</Td>
-                    <Td className="text-center">{item.priority}</Td>
-
-                    <Td
-                      onClick={() => handleEdit(item)}
-                      className="text-[#3E4A8A] cursor-pointer font-medium"
-                    >
-                      Edit
+                    <Td className="whitespace-nowrap">
+                      {item.description}
                     </Td>
-
-                    <Td
-                      onClick={() => handleDelete(item._id)}
-                      className="text-red-600 cursor-pointer font-medium"
-                    >
-                      Delete
+                    <Td className="text-center">{item.priority}</Td>
+                    <Td className="text-center space-x-3">
+                      <button
+                        onClick={() => handleEdit(item)}
+                        className="text-[#3E4A8A] font-medium"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item._id)}
+                        className="text-red-600 font-medium"
+                      >
+                        Delete
+                      </button>
                     </Td>
                   </tr>
                 ))
@@ -241,7 +234,6 @@ const TMFormsSetup = () => {
           </table>
         </div>
       </div>
-
     </div>
   );
 };
@@ -249,7 +241,6 @@ const TMFormsSetup = () => {
 export default TMFormsSetup;
 
 /* ===== UI HELPERS ===== */
-
 const Th = ({ children, className = "" }) => (
   <th className={`p-3 border text-left font-semibold ${className}`}>
     {children}

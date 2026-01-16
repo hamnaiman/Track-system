@@ -1,51 +1,203 @@
-// src/pages/Agent/Dashboard.jsx
-import React, { useState, useEffect } from 'react';
-import api from '../../api/api';
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../../api/api";
+import { toast } from "react-toastify";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid
+} from "recharts";
 
-const Dashboard = () => {
+const AgentDashboard = () => {
+  const navigate = useNavigate();
+
   const [applications, setApplications] = useState([]);
+  const [stats, setStats] = useState({
+    clients: 0,
+    tmForms: 0
+  });
+  const [loading, setLoading] = useState(false);
 
-  const fetchApplications = async () => {
+  /* ================= LOAD DASHBOARD ================= */
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const loadDashboard = async () => {
+    setLoading(true);
     try {
-      const res = await api.get('/tm-applications'); // fetch only assigned to agent if backend supports
-      setApplications(res.data);
+      const [appsRes, dashRes] = await Promise.all([
+        api.get("/applications"),
+        api.get("/agents/dashboard")
+      ]);
+
+      const apps = Array.isArray(appsRes.data)
+        ? appsRes.data
+        : appsRes.data?.data || [];
+
+      setApplications(apps);
+
+      const payload = dashRes.data?.data || {};
+      setStats({
+        clients: payload.clients || 0,
+        tmForms: payload.tmForms || 0
+      });
     } catch (err) {
       console.error(err);
-      alert('Failed to fetch applications');
+      toast.error("Failed to load dashboard");
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchApplications();
-  }, []);
+  /* ================= LINE GRAPH DATA ================= */
+  const graphData = useMemo(() => {
+    if (!applications.length) return [];
+
+    const map = {};
+
+    applications.forEach((app) => {
+      if (!app.createdAt) return;
+
+      const date = new Date(app.createdAt).toLocaleDateString();
+      map[date] = (map[date] || 0) + 1;
+    });
+
+    return Object.keys(map)
+      .map((date) => ({ date, count: map[date] }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+  }, [applications]);
 
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Agent Dashboard</h2>
-      <p>Total Applications: {applications.length}</p>
+    <div className="space-y-3">
 
-      <table className="w-full border-collapse border border-gray-300 mt-4">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="border p-2">#</th>
-            <th className="border p-2">Customer Code</th>
-            <th className="border p-2">Trademark</th>
-            <th className="border p-2">Class</th>
-          </tr>
-        </thead>
-        <tbody>
-          {applications.map((app, i) => (
-            <tr key={app._id}>
-              <td className="border p-2">{i + 1}</td>
-              <td className="border p-2">{app.customerCode}</td>
-              <td className="border p-2">{app.trademark}</td>
-              <td className="border p-2">{app.classNumber}</td>
-            </tr>
+      {/* ===== HEADER ===== */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#3E4A8A]">
+          Agent Dashboard
+        </h1>
+        <p className="text-gray-500 mt-1">
+          Overview of applications, TM forms and client activity
+        </p>
+      </div>
+
+      {/* ===== STATS CARDS ===== */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <StatCard
+          label="Applications"
+          value={loading ? "…" : applications.length}
+          onClick={() => navigate("/agent/applications")}
+        />
+
+        <StatCard
+          label="Clients"
+          value={loading ? "…" : stats.clients}
+          onClick={() => navigate("/agent/clients")}
+        />
+
+        <StatCard
+          label="TM Forms"
+          value={loading ? "…" : stats.tmForms}
+          onClick={() => navigate("/agent/tm-forms")}
+        />
+
+      </div>
+
+      {/* ===== GRAPH + ACTIONS ===== */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* ===== LINE GRAPH ===== */}
+        <div className="lg:col-span-2 bg-white rounded-xl p-6 border">
+          <h3 className="text-lg font-semibold text-[#3E4A8A] mb-1">
+            Applications Over Time
+          </h3>
+          <p className="text-xs text-gray-400 mb-4">
+            Daily growth of trademark applications
+          </p>
+
+          {loading ? (
+            <div className="h-64 flex items-center justify-center text-gray-400">
+              Loading graph…
+            </div>
+          ) : graphData.length === 0 ? (
+            <div className="h-64 flex items-center justify-center text-gray-400 border rounded-lg">
+              No application data available
+            </div>
+          ) : (
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={graphData}>
+                  <CartesianGrid
+                    strokeDasharray="4 4"
+                    stroke="#E5E7EB"
+                  />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 12, fill: "#6B7280" }}
+                  />
+                  <YAxis
+                    allowDecimals={false}
+                    tick={{ fontSize: 12, fill: "#6B7280" }}
+                  />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#3E4A8A"
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+
+        {/* ===== QUICK ACTIONS ===== */}
+        <div className="bg-white rounded-xl p-6 border space-y-6">
+          <h3 className="text-lg font-semibold text-[#3E4A8A]">
+            Quick Actions
+          </h3>
+
+          {[
+            { label: "Applications", path: "/agent/applications" },
+            { label: "TM Forms", path: "/agent/tm-forms" },
+            { label: "Clients", path: "/agent/clients" },
+            {label: "Hearings" ,path: "/agent/hearings"}
+          ].map((item) => (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className="w-full text-left px-4 py-3 border rounded-lg
+                         hover:bg-[#F4F6F8] transition"
+            >
+              {item.label}
+            </button>
           ))}
-        </tbody>
-      </table>
+        </div>
+
+      </div>
     </div>
   );
 };
 
-export default Dashboard;
+export default AgentDashboard;
+
+/* ================= UI COMPONENT ================= */
+const StatCard = ({ label, value, onClick }) => (
+  <div
+    onClick={onClick}
+    className="bg-white rounded-xl p-6 border hover:shadow-lg cursor-pointer transition"
+  >
+    <p className="text-sm text-gray-500">{label}</p>
+    <h2 className="text-3xl font-bold text-[#3E4A8A] mt-2">
+      {value}
+    </h2>
+  </div>
+);

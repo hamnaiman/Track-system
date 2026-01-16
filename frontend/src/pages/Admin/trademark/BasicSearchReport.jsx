@@ -18,7 +18,6 @@ const BasicSearchReport = () => {
   const [customers, setCustomers] = useState([]);
   const [result, setResult] = useState([]);
 
-  /* ================= LOAD APPLICANTS ================= */
   useEffect(() => {
     api
       .get("/customers")
@@ -30,25 +29,25 @@ const BasicSearchReport = () => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
-  /* ================= SEARCH ================= */
   const search = async () => {
     try {
       const res = await api.post("/reports/basic-search", filters);
-      setResult(res.data.data || []);
-      toast.success("Report generated");
+      const dataArray = Array.isArray(res.data) ? res.data : res.data.data || [];
+      setResult(dataArray);
+
+      dataArray.length === 0
+        ? toast.info("No records found")
+        : toast.success(`Report generated (${dataArray.length})`);
     } catch (err) {
       toast.error(err.response?.data?.message || "Search failed");
     }
   };
 
-  /* ================= DELETE ================= */
   const handleDelete = (id) => {
     toast.info(
       ({ closeToast }) => (
         <div className="space-y-3">
-          <p className="font-semibold text-sm">
-            Delete this application?
-          </p>
+          <p className="font-semibold text-sm">Delete this application?</p>
           <div className="flex justify-end gap-3">
             <button
               onClick={async () => {
@@ -65,10 +64,7 @@ const BasicSearchReport = () => {
             >
               Yes
             </button>
-            <button
-              onClick={closeToast}
-              className="bg-gray-300 px-4 py-1 rounded"
-            >
+            <button onClick={closeToast} className="bg-gray-300 px-4 py-1 rounded">
               Cancel
             </button>
           </div>
@@ -78,26 +74,18 @@ const BasicSearchReport = () => {
     );
   };
 
-  /* ================= EDIT ================= */
   const handleEdit = (id) => {
-    // redirect to application edit page
     window.location.href = `/admin/application-details?edit=${id}`;
   };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
 
-      {/* ================= HEADER ================= */}
       <div>
-        <h2 className="text-2xl font-bold text-[#3E4A8A]">
-          TM Basic Search Report
-        </h2>
-        <p className="text-sm text-gray-500">
-          Search trademark applications using filters
-        </p>
+        <h2 className="text-2xl font-bold text-[#3E4A8A]">TM Basic Search Report</h2>
+        <p className="text-sm text-gray-500">Search trademark applications using filters</p>
       </div>
 
-      {/* ================= FILTER CARD ================= */}
       <div className="bg-white p-6 rounded-2xl shadow border">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
@@ -113,9 +101,7 @@ const BasicSearchReport = () => {
           <Select name="applicant" onChange={updateField}>
             <option value="">Select Applicant</option>
             {customers.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.customerName}
-              </option>
+              <option key={c._id} value={c._id}>{c.customerName}</option>
             ))}
           </Select>
 
@@ -123,13 +109,12 @@ const BasicSearchReport = () => {
           <Input name="classFrom" placeholder="Class From" type="number" onChange={updateField} />
           <Input name="classTo" placeholder="Class To" type="number" onChange={updateField} />
 
-          {/* REPORT TYPE */}
-          <div className="md:col-span-2 flex gap-6 mt-2">
-            <label className="flex items-center gap-2 text-sm">
+          <div className="md:col-span-2 flex gap-6">
+            <label className="flex gap-2 text-sm">
               <input type="radio" name="reportType" value="summary" defaultChecked onChange={updateField} />
               Summary
             </label>
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex gap-2 text-sm">
               <input type="radio" name="reportType" value="details" onChange={updateField} />
               Details
             </label>
@@ -137,60 +122,46 @@ const BasicSearchReport = () => {
 
           <button
             onClick={search}
-            className="md:col-span-2 bg-[#3E4A8A] hover:bg-[#2f3970]
-                       text-white py-3 rounded-lg font-semibold transition"
+            className="md:col-span-2 bg-[#3E4A8A] text-white py-3 rounded-lg font-semibold"
           >
             Generate Report
           </button>
         </div>
       </div>
 
-      {/* ================= RESULTS ================= */}
       <div className="space-y-4">
-        {result.length === 0 && (
-          <p className="text-gray-500 text-sm">No results found.</p>
-        )}
+        {result.map((item, index) => (
+          <div key={item._id || index} className="bg-white border rounded-2xl shadow-sm p-5">
 
-        {result.map((item) => (
-          <div
-            key={item._id}
-            className="bg-white border rounded-2xl shadow-sm p-5"
-          >
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="flex flex-col md:flex-row justify-between gap-3">
               <div>
                 <h3 className="font-bold text-lg text-[#3E4A8A]">
-                  {item.trademark}
+                  {item.trademark || item.application?.trademark || "-"}
                 </h3>
+
                 <p className="text-sm text-gray-600">
-                  Application #: {item.applicationNumber}
+                  Application #: {item.applicationNumber || item.application?.applicationNumber || "-"}
                 </p>
+
                 <p className="text-sm">
-                  Applicant: {item.client?.customerName}
+                  Applicant: {item.client?.customerName || item.application?.client?.customerName || "-"}
                 </p>
+
                 <p className="text-sm">
-                  Filing Date:{" "}
-                  {new Date(item.dateOfFiling).toLocaleDateString()}
+                  Goods: {item.goods || item.application?.goods || "-"}
                 </p>
               </div>
 
-              {/* ACTIONS */}
               <div className="flex gap-3">
-                <button
-                  onClick={() => handleEdit(item._id)}
-                  className="px-4 py-1 rounded bg-blue-100 text-[#3E4A8A] text-sm font-semibold"
-                >
+                <button onClick={() => handleEdit(item._id)} className="px-4 py-1 bg-blue-100 rounded">
                   Edit
                 </button>
-                <button
-                  onClick={() => handleDelete(item._id)}
-                  className="px-4 py-1 rounded bg-red-100 text-red-600 text-sm font-semibold"
-                >
+                <button onClick={() => handleDelete(item._id)} className="px-4 py-1 bg-red-100 rounded text-red-600">
                   Delete
                 </button>
               </div>
             </div>
 
-            {/* DETAILS VIEW */}
             {filters.reportType === "details" && (
               <div className="mt-4 text-xs bg-gray-50 rounded-lg p-3 space-y-2">
                 <Section title="Hearings" data={item.hearings?.hearings} />
@@ -201,29 +172,18 @@ const BasicSearchReport = () => {
           </div>
         ))}
       </div>
-
     </div>
   );
 };
 
 export default BasicSearchReport;
 
-/* ================= UI HELPERS ================= */
-
-const Input = ({ className = "", ...props }) => (
-  <input
-    {...props}
-    className={`px-4 py-3 rounded-lg bg-gray-100 border
-                focus:outline-none focus:ring-2 focus:ring-blue-200 ${className}`}
-  />
+const Input = (props) => (
+  <input {...props} className="px-4 py-3 rounded-lg bg-gray-100 border" />
 );
 
-const Select = ({ className = "", children, ...props }) => (
-  <select
-    {...props}
-    className={`px-4 py-3 rounded-lg bg-gray-100 border
-                focus:outline-none focus:ring-2 focus:ring-blue-200 ${className}`}
-  >
+const Select = ({ children, ...props }) => (
+  <select {...props} className="px-4 py-3 rounded-lg bg-gray-100 border">
     {children}
   </select>
 );
@@ -231,8 +191,6 @@ const Select = ({ className = "", children, ...props }) => (
 const Section = ({ title, data }) => (
   <>
     <p className="font-semibold text-gray-600">{title}</p>
-    <pre className="overflow-x-auto">
-      {JSON.stringify(data || [], null, 2)}
-    </pre>
+    <pre className="overflow-x-auto">{JSON.stringify(data || [], null, 2)}</pre>
   </>
 );

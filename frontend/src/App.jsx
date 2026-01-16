@@ -19,7 +19,7 @@ import AgentLayout from "./layout/AgentLayout";
 /* ================= ADMIN ================= */
 import AdminDashboard from "./pages/Admin/Dashboard";
 
-/* ===== ADMIN → SETUPS ===== */
+/* ADMIN → SETUPS */
 import AddUser from "./pages/Admin/setups/AddUser";
 import AgentListTM from "./pages/Admin/setups/AgentListTM";
 import AgentRegistration from "./pages/Admin/setups/AgentRegistration";
@@ -32,7 +32,7 @@ import FileStatusSetup from "./pages/Admin/setups/FileStatusSetup";
 import TMFormsSetup from "./pages/Admin/setups/TMFormsSetup";
 import CustomerListTM from "./pages/Admin/setups/CustomerListTM";
 
-/* ===== ADMIN → TRADEMARK ===== */
+/* ADMIN → TRADEMARK */
 import ApplicationDetails from "./pages/Admin/trademark/ApplicationDetails";
 import Hearing from "./pages/Admin/trademark/Hearing";
 import JournalDetails from "./pages/Admin/trademark/JournalDetails";
@@ -40,28 +40,30 @@ import RenewalDetails from "./pages/Admin/trademark/RenewalDetails";
 import TMFormEntries from "./pages/Admin/trademark/TMFormEntries";
 import TMDocuments from "./pages/Admin/trademark/TMDocuments";
 
-/* ===== ADMIN → REPORTS ===== */
+/* ADMIN → REPORTS */
 import BasicSearchReport from "./pages/Admin/trademark/BasicSearchReport";
 import TMSingleQuery from "./pages/Admin/trademark/TMSingleQuery";
 import TMReminderReport from "./pages/Admin/trademark/TMReminderReport";
 import TMRenewalReport from "./pages/Admin/trademark/TMRenewalReport";
 
-/* ===== ADMIN → OPPOSITION ===== */
+/* ADMIN → OPPOSITION */
+import OppositionAdd from "./pages/Admin/opposition/OppositionAdd";
 import OppositionDocuments from "./pages/Admin/opposition/OppositionDocuments";
 import OppositionFormEntries from "./pages/Admin/opposition/OppositionFormEntries";
 import OppositionReport from "./pages/Admin/opposition/OppositionReport";
 import OppositionReminderReport from "./pages/Admin/opposition/OppositionReminderReport";
 import OppositionSingleQuery from "./pages/Admin/opposition/OppositionSingleQuery";
 
-/* ===== ADMIN → JOURNAL ===== */
+/* ADMIN → JOURNAL */
 import CompareJournal from "./pages/Admin/TradeMarkJournal/CompareJournal";
 import MonthlyJournal from "./pages/Admin/TradeMarkJournal/MonthlyJournal";
 import SearchManualJournal from "./pages/Admin/TradeMarkJournal/SearchManualJournal";
 
-/* ===== ADMIN → UTILITY ===== */
+/* ADMIN → UTILITY */
 import ChangePassword from "./pages/Admin/Utility/ChangePassword";
 import DateSetup from "./pages/Admin/Utility/DateSetup";
 import LogoSetup from "./pages/Admin/Utility/LogoSetup";
+import UserManual from "./pages/Admin/Utility/UserManual";
 
 /* ================= USER ================= */
 import UserDashboard from "./pages/User/Dashboard";
@@ -69,6 +71,7 @@ import UserChangePassword from "./pages/User/Utility/ChangePassword";
 
 /* USER → TRADEMARK */
 import UserApplicationDetails from "./pages/User/Trademark/ApplicationDetails";
+import UserApplicationView from "./pages/User/Trademark/ApplicationView";
 import UserHearings from "./pages/User/Trademark/Hearings";
 import UserJournalDetails from "./pages/User/Trademark/JournalDetails";
 import UserRenewalDetails from "./pages/User/Trademark/RenewalDetails";
@@ -82,7 +85,9 @@ import ManualSearch from "./pages/User/Journal/ManualSearch";
 
 /* USER → OPPOSITION */
 import UserOppositionDocuments from "./pages/User/Opposition/Documents";
-import UserOppositionReport from "./pages/User/Opposition/Reports";
+import UserOppositionForms from "./pages/User/Opposition/Forms";
+import UserOppositionDetails from "./pages/User/Opposition/OppositionDetails";
+import UserOppositionReports from "./pages/User/Opposition/Reports";
 
 /* USER → REPORTS */
 import UserBasicSearch from "./pages/User/Reports/BasicSearch";
@@ -92,6 +97,14 @@ import UserSingleQuery from "./pages/User/Reports/SingleQuery";
 
 /* ================= AGENT ================= */
 import AgentDashboard from "./pages/Agent/Dashboard";
+import Applications from "./pages/Agent/Trademark/Application";
+import Clients from "./pages/Agent/Clients";
+import Documents from "./pages/Agent/Trademark/Documents";
+import Journal from "./pages/Agent/Trademark/Journal";
+import Renewals from "./pages/Agent/Trademark/Renewals";
+import ReminderReport from "./pages/Agent/Reports/ReminderReport";
+import RenewalReport from "./pages/Agent/Reports/RenewalReport";
+import SingleQuery from "./pages/Agent/Reports/SingleQuery";
 
 function App() {
   return (
@@ -137,6 +150,7 @@ function App() {
             <Route path="reports/single-query" element={<TMSingleQuery />} />
 
             {/* OPPOSITION */}
+            <Route path="opposition/add" element={<OppositionAdd />} />
             <Route path="opposition/documents" element={<OppositionDocuments />} />
             <Route path="opposition/form-entries" element={<OppositionFormEntries />} />
             <Route path="opposition/report" element={<OppositionReport />} />
@@ -152,6 +166,7 @@ function App() {
             <Route path="change-password" element={<ChangePassword />} />
             <Route path="date-setup" element={<DateSetup />} />
             <Route path="logo-setup" element={<LogoSetup />} />
+            <Route path="user-manual" element={<UserManual />} />
           </Route>
         </Route>
 
@@ -159,31 +174,28 @@ function App() {
         <Route path="/user" element={<UserRoutes />}>
           <Route element={<UserLayout />}>
             <Route path="dashboard" element={<UserDashboard />} />
-
-            {/* TRADEMARK */}
             <Route path="trademark/applications" element={<UserApplicationDetails />} />
+            <Route path="trademark/application/view/:id" element={<UserApplicationView />} />
             <Route path="trademark/hearings" element={<UserHearings />} />
             <Route path="trademark/journal-details" element={<UserJournalDetails />} />
             <Route path="trademark/renewal-details" element={<UserRenewalDetails />} />
             <Route path="trademark/tm-forms" element={<TMForms />} />
             <Route path="trademark/documents" element={<UserTMDocuments />} />
 
-            {/* JOURNAL */}
             <Route path="journal/monthly-entries" element={<MonthlyEntries />} />
             <Route path="journal/compare" element={<UserCompareJournal />} />
             <Route path="journal/search-manual" element={<ManualSearch />} />
 
-            {/* OPPOSITION */}
             <Route path="opposition/documents" element={<UserOppositionDocuments />} />
-            <Route path="opposition/report" element={<UserOppositionReport />} />
+            <Route path="opposition/forms" element={<UserOppositionForms />} />
+            <Route path="opposition/details" element={<UserOppositionDetails />} />
+            <Route path="opposition/reports" element={<UserOppositionReports />} />
 
-            {/* REPORTS */}
             <Route path="reports/basic-search" element={<UserBasicSearch />} />
             <Route path="reports/reminder" element={<UserReminderReport />} />
             <Route path="reports/renewal" element={<UserRenewalReport />} />
             <Route path="reports/single-query" element={<UserSingleQuery />} />
 
-            {/* UTILITY */}
             <Route path="change-password" element={<UserChangePassword />} />
           </Route>
         </Route>
@@ -192,6 +204,17 @@ function App() {
         <Route path="/agent" element={<AgentRoutes />}>
           <Route element={<AgentLayout />}>
             <Route path="dashboard" element={<AgentDashboard />} />
+            <Route path="clients" element={<Clients />} />
+            <Route path="applications" element={<Applications />} />
+            <Route path="hearings" element={<Hearing />} />
+            <Route path="documents" element={<Documents />} />
+            <Route path="journal" element={<Journal />} />
+            <Route path="renewals" element={<Renewals />} />
+            <Route path="tm-forms" element={<TMForms />} />
+
+            <Route path="reports/reminder" element={<ReminderReport />} />
+            <Route path="reports/renewal" element={<RenewalReport />} />
+            <Route path="reports/single-query" element={<SingleQuery />} />
           </Route>
         </Route>
 

@@ -5,75 +5,90 @@ const TMDocuments = () => {
   const [applications, setApplications] = useState([]);
   const [selectedApp, setSelectedApp] = useState("");
   const [documents, setDocuments] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingApps, setLoadingApps] = useState(false);
+  const [loadingDocs, setLoadingDocs] = useState(false);
   const [error, setError] = useState("");
 
   /* ================= LOAD USER APPLICATIONS ================= */
   useEffect(() => {
-    loadApplications();
+    fetchApplications();
   }, []);
 
-  const loadApplications = async () => {
+  const normalizeArrayResponse = (res) => {
+    if (Array.isArray(res)) return res;
+    if (Array.isArray(res?.data)) return res.data;
+    if (Array.isArray(res?.data?.data)) return res.data.data;
+    return [];
+  };
+
+  const fetchApplications = async () => {
+    setLoadingApps(true);
+    setError("");
+
     try {
       const res = await api.get("/applications");
 
-      // ✅ CORRECT NORMALIZATION (THIS FIXES YOUR BUG)
-      const apps = Array.isArray(res.data)
-        ? res.data
-        : res.data?.data || [];
+      const apps = normalizeArrayResponse(res.data);
+
+      if (!apps.length) {
+        setError("No applications assigned to this account");
+      }
 
       setApplications(apps);
     } catch (err) {
-      console.error(err);
+      console.error("APPLICATION FETCH ERROR:", err);
       setError("Failed to load applications");
+    } finally {
+      setLoadingApps(false);
     }
   };
 
   /* ================= LOAD DOCUMENTS ================= */
-  const loadDocuments = async (applicationNumber) => {
+  const fetchDocuments = async (applicationNumber) => {
     if (!applicationNumber) return;
 
-    setLoading(true);
+    setLoadingDocs(true);
     setError("");
     setDocuments([]);
 
     try {
-      const res = await api.get("/tm-documents", {
+      const res = await api.get("/documents", {
         params: { applicationNumber }
       });
 
-      setDocuments(res.data || []);
+      const docs = normalizeArrayResponse(res.data);
+      setDocuments(docs);
     } catch (err) {
+      console.error("DOCUMENT FETCH ERROR:", err);
       setError("Failed to load documents");
     } finally {
-      setLoading(false);
+      setLoadingDocs(false);
     }
   };
 
   /* ================= DOWNLOAD ================= */
   const downloadDocument = async (id, fileName) => {
     try {
-      const res = await api.get(`/tm-documents/download/${id}`, {
+      const res = await api.get(`/documents/download/${id}`, {
         responseType: "blob"
       });
 
-      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const url = window.URL.createObjectURL(res.data);
       const link = document.createElement("a");
-
       link.href = url;
-      link.setAttribute("download", fileName);
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch {
+    } catch (err) {
       alert("Download failed");
     }
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
 
-      {/* ===== HEADER ===== */}
+      {/* HEADER */}
       <div>
         <h2 className="text-2xl font-semibold text-[#3E4A8A]">
           TM Documents
@@ -83,25 +98,25 @@ const TMDocuments = () => {
         </p>
       </div>
 
-      {/* ===== APPLICATION SELECT ===== */}
+      {/* APPLICATION SELECT */}
       <div className="bg-white border rounded-lg p-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium mb-2">
           Select Application
         </label>
 
         <select
-          className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#3E4A8A]"
+          className="w-full border rounded px-3 py-2"
           value={selectedApp}
+          disabled={loadingApps}
           onChange={(e) => {
-            setSelectedApp(e.target.value);
-            loadDocuments(e.target.value);
+            const value = e.target.value;
+            setSelectedApp(value);
+            fetchDocuments(value);
           }}
         >
-          <option value="">-- Select Application --</option>
-
-          {applications.length === 0 && (
-            <option disabled>No applications found</option>
-          )}
+          <option value="">
+            {loadingApps ? "Loading applications..." : "-- Select Application --"}
+          </option>
 
           {applications.map((app) => (
             <option key={app._id} value={app.applicationNumber}>
@@ -111,81 +126,58 @@ const TMDocuments = () => {
         </select>
       </div>
 
-      {/* ===== ERROR ===== */}
+      {/* ERROR */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded text-sm">
           {error}
         </div>
       )}
 
-      {/* ===== LOADING ===== */}
-      {loading && (
+      {/* DOCUMENTS TABLE */}
+      {loadingDocs && (
         <div className="text-gray-500 text-sm">
           Loading documents...
         </div>
       )}
 
-      {/* ===== DOCUMENT TABLE ===== */}
-      {!loading && documents.length > 0 && (
-        <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
+      {!loadingDocs && documents.length > 0 && (
+        <div className="bg-white border rounded-lg overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border px-4 py-2 text-left">File</th>
+                <th className="border px-4 py-2 text-left">Remarks</th>
+                <th className="border px-4 py-2 text-left">Date</th>
+                <th className="border px-4 py-2 text-center">Action</th>
+              </tr>
+            </thead>
 
-          <div className="px-4 py-3 border-b bg-gray-50 font-medium text-gray-700">
-            Documents List
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm border-collapse">
-              <thead className="bg-gray-100 text-gray-700">
-                <tr>
-                  <th className="border px-4 py-2 text-left">
-                    File Name
-                  </th>
-                  <th className="border px-4 py-2 text-left">
-                    Remarks
-                  </th>
-                  <th className="border px-4 py-2 text-left">
-                    Uploaded Date
-                  </th>
-                  <th className="border px-4 py-2 text-center">
-                    Action
-                  </th>
+            <tbody>
+              {documents.map((doc) => (
+                <tr key={doc._id} className="hover:bg-gray-50">
+                  <td className="border px-4 py-2">{doc.fileName}</td>
+                  <td className="border px-4 py-2">{doc.remarks || "-"}</td>
+                  <td className="border px-4 py-2">
+                    {new Date(doc.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="border px-4 py-2 text-center">
+                    <button
+                      onClick={() => downloadDocument(doc._id, doc.fileName)}
+                      className="text-[#3E4A8A] font-medium hover:underline"
+                    >
+                      Download
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-
-              <tbody>
-                {documents.map((doc) => (
-                  <tr key={doc._id} className="hover:bg-blue-50 transition">
-                    <td className="border px-4 py-2">
-                      {doc.fileName}
-                    </td>
-                    <td className="border px-4 py-2">
-                      {doc.remarks || "-"}
-                    </td>
-                    <td className="border px-4 py-2">
-                      {new Date(doc.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="border px-4 py-2 text-center">
-                      <button
-                        onClick={() =>
-                          downloadDocument(doc._id, doc.fileName)
-                        }
-                        className="text-[#3E4A8A] font-medium hover:underline"
-                      >
-                        Download
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
-      {/* ===== EMPTY STATE ===== */}
-      {!loading && selectedApp && documents.length === 0 && (
-        <div className="text-gray-500 text-center py-6 text-sm">
+      {/* EMPTY STATE */}
+      {!loadingDocs && selectedApp && documents.length === 0 && (
+        <div className="text-center text-gray-500 text-sm py-6">
           No documents available for this application
         </div>
       )}
